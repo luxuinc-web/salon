@@ -12,6 +12,7 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 .dl{font-size:12px;font-weight:bold;color:#1a3a5c;min-width:130px;text-align:center}
 .btn{border:1px solid #bbb;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:#fff}
 .btn.ac{background:#1a5fa8;color:#fff;border-color:#1a5fa8}
+.btn.red{color:#a32d2d}
 .sy{font-size:11px;color:#888;margin-bottom:6px}
 .gw{overflow-x:auto;border:1px solid #ddd;border-radius:10px;background:#fff}
 .gi{min-width:600px}
@@ -34,23 +35,32 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 .nd{position:absolute;top:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:#e84040}
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;align-items:center;justify-content:center;padding:16px}
 .ov.on{display:flex}
-.box{background:#fff;border-radius:12px;padding:16px;width:280px;max-width:100%}
-.bh{font-weight:bold;margin-bottom:10px;font-size:13px}
+.box{background:#fff;border-radius:12px;padding:16px;width:300px;max-width:100%;max-height:85vh;overflow-y:auto}
+.bh{font-weight:bold;margin-bottom:12px;font-size:14px;color:#1a3a5c}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:5px 10px;border:1px solid #bbb;border-radius:6px;font-size:11px;cursor:pointer;background:#fff}
+.tab.on{background:#1a5fa8;color:#fff;border-color:#1a5fa8}
 .f{margin-bottom:8px}
 .f label{display:block;font-size:11px;color:#888;margin-bottom:2px}
 .f input,.f select{width:100%;border:1px solid #ccc;border-radius:6px;padding:5px 8px;font-size:12px}
-.br{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+.row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:none}
+.cdot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.br{display:flex;gap:6px;justify-content:flex-end;margin-top:12px}
+.copts{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.copt{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.copt.sel{border-color:#1a2a3a}
 </style>
 </head>
 <body>
 <div class="bar">
-<div class="ti">✂ レッスン予約表</div>
-<button class="btn" onclick="cd(-1)">◄</button>
-<div class="dl" id="dl"></div>
-<button class="btn" onclick="cd(1)">►</button>
-<button class="btn" onclick="gt()">今日</button>
-<button class="btn ac" onclick="showAdd(null,null)">＋予約</button>
-<button class="btn" onclick="showSet()">設定</button>
+  <div class="ti">✂ レッスン予約表</div>
+  <button class="btn" onclick="cd(-1)">◄</button>
+  <div class="dl" id="dl"></div>
+  <button class="btn" onclick="cd(1)">►</button>
+  <button class="btn" onclick="gt()">今日</button>
+  <button class="btn ac" onclick="showAdd(null,null)">＋予約</button>
+  <button class="btn" onclick="showSet()">設定</button>
 </div>
 <div class="sy" id="sy">読み込み中...</div>
 <div class="gw"><div class="gi" id="gr"></div></div>
@@ -58,29 +68,120 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 <script>
 var GAS_URL="https://script.google.com/macros/s/AKfycbyYKdJsrH43QlIIujIIEf-8xLZJtkWgZTYwcjz-pvQHcg5n50hVy8iKdVi66mcvL9cS/exec";
 var WK=["日","月","火","水","木","金","土"];
-var COLS=[{n:"カット",b:"#CECBF6",t:"#3C3489"},{n:"カラー",b:"#9FE1CB",t:"#085041"},{n:"パーマ",b:"#F5C4B3",t:"#712B13"},{n:"トリート",b:"#F4C0D1",t:"#72243E"},{n:"シャンプー",b:"#FAC775",t:"#633806"}];
-var D={bks:{},staff:[{id:"s1",n:"スタッフA",r:"スタイリスト",o:false},{id:"s2",n:"スタッフB",r:"スタイリスト",o:false},{id:"s3",n:"スタッフC",r:"アシスタント",o:false}],menus:COLS,ts:9,te:19};
-var cur=new Date();
+var COLS=["#CECBF6","#9FE1CB","#F5C4B3","#F4C0D1","#FAC775","#B5D4F4","#C0DD97","#F7C1C1"];
+var TCOLS=["#3C3489","#085041","#712B13","#72243E","#633806","#0C447C","#27500A","#791F1F"];
+var D={bks:{},staff:[{id:"s1",n:"スタッフA",r:"スタイリスト",o:false},{id:"s2",n:"スタッフB",r:"スタイリスト",o:false},{id:"s3",n:"スタッフC",r:"アシスタント",o:false}],menus:[{n:"カット",c:0},{n:"カラー",c:1},{n:"パーマ",c:2},{n:"トリート",c:3},{n:"シャンプー",c:4}],ts:9,te:19};
+var cur=new Date();var stab="staff";var nc=0;
+
 function DK(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
 function FD(d){return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+WK[d.getDay()]+"）";}
 function HL(v){return Math.floor(v)+":"+(v%1?"30":"00");}
 function SL(){var a=[];for(var h=D.ts;h<D.te;h++){a.push(h);a.push(h+0.5);}return a;}
-function MC(n){return D.menus.find(function(x){return x.n===n;})||COLS[0];}
+function MC(n){var m=D.menus.find(function(x){return x.n===n;});return m?{b:COLS[m.c],t:TCOLS[m.c]}:{b:COLS[0],t:TCOLS[0]};}
 function cd(n){cur=new Date(cur);cur.setDate(cur.getDate()+n);render();}
 function gt(){cur=new Date();render();}
 function hd(){document.getElementById("ov").className="ov";}
 function NP(){var now=new Date();if(now.toDateString()!==cur.toDateString())return null;var tot=(D.te-D.ts)*60,el=(now.getHours()-D.ts)*60+now.getMinutes();if(el<0||el>tot)return null;return(el/tot)*100;}
-function load(){fetch(GAS_URL+"?action=load").then(function(r){return r.json();}).then(function(d){if(d.bks)D.bks=d.bks;if(d.staff&&d.staff.length)D.staff=d.staff;if(d.menus&&d.menus.length)D.menus=d.menus;if(d.ts)D.ts=d.ts;if(d.te)D.te=d.te;document.getElementById("sy").textContent="同期済み";render();}).catch(function(){document.getElementById("sy").textContent="オフライン";render();});}
-function save(){document.getElementById("sy").textContent="保存中...";fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D))).then(function(){document.getElementById("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});}).catch(function(){document.getElementById("sy").textContent="保存エラー";});}
-function render(){document.getElementById("dl").textContent=FD(cur);var sl=SL(),dk=DK(cur),db=D.bks[dk]||{},np=NP();var h='<div class="gh"><div class="sc">スタッフ</div><div class="th">';sl.forEach(function(v){h+='<div class="tc'+(v%1?' hf':'')+'">'+HL(v)+'</div>';});h+='</div></div>';D.staff.forEach(function(s){h+='<div class="sr"><div class="si"><div class="sn">'+s.n+'</div><div class="sm">'+s.r+(s.o?' · 休':'')+'</div></div><div class="sa">';if(s.o)h+='<div style="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999">休日</div>';sl.forEach(function(v){var k=s.id+"_"+v,bk=db[k],c=bk?MC(bk.m):null;if(bk)h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" onclick="showDet(\''+ dk+'\',\''+k+'\')">' +(v%1?''  :bk.n.substring(0,4))+'</div></div>';else if(s.o)h+='<div class="sl'+(v%1?' hf':'')+'" style="background:#e8edf2"></div>';else h+='<div class="sl'+(v%1?' hf':'')+'" onclick="showAdd(\''+ s.id+'\','+v+')"></div>';});if(np!==null)h+='<div class="nl" style="left:'+np+'%"><div class="nd"></div></div>';h+='</div></div>';});document.getElementById("gr").innerHTML=h;}
-function showAdd(sid,slot){var dk=DK(cur);var so=D.staff.map(function(s){return'<option value="'+s.id+'"'+(s.id===sid?' selected':'')+'>'+s.n+'</option>';}).join('');var mo=D.menus.map(function(m){return'<option value="'+m.n+'">'+m.n+'</option>';}).join('');var df=slot!=null?slot:D.ts,ho='';for(var h=D.ts;h<D.te;h++){ho+='<option value="'+h+'"'+(h===df?' selected':'')+'>'+h+':00</option>';ho+='<option value="'+(h+0.5)+'"'+ ((h+0.5)===df?' selected':'')+'>'+h+':30</option>';}document.getElementById("bx").innerHTML='<div class="bh">予約追加</div><div class="f"><label>お客様名</label><input id="mn" placeholder="山田 花子"/></div><div class="f"><label>メニュー</label><select id="mm">'+mo+'</select></div><div class="f"><label>担当</label><select id="ms">'+so+'</select></div><div class="f"><label>開始</label><select id="mt">'+ho+'</select></div><div class="br"><button class="btn" onclick="hd()">キャンセル</button><button class="btn ac" onclick="doAdd(\''+ dk+'\')">追加する</button></div>';document.getElementById("ov").className="ov on";}
-function doAdd(dk){var nm=document.getElementById("mn").value.trim();if(!nm){alert("名前を入力してください");return;}var sid=document.getElementById("ms").value,sv=parseFloat(document.getElementById("mt").value),k=sid+"_"+sv;if(!D.bks[dk])D.bks[dk]={};if(D.bks[dk][k]&&!confirm("上書きしますか？"))return;D.bks[dk][k]={n:nm,m:document.getElementById("mm").value,sid:sid,slot:sv};hd();save();render();}
-function showDet(dk,k){var bk=D.bks[dk]&&D.bks[dk][k];if(!bk)return;var s=D.staff.find(function(x){return x.id===bk.sid;}),c=MC(bk.m);document.getElementById("bx").innerHTML='<div class="bh">予約詳細</div><div style="background:'+c.b+';color:'+c.t+';border-radius:6px;padding:8px 10px;margin-bottom:10px"><b>'+bk.n+' 様</b><br><span style="font-size:11px">'+bk.m+' · '+HL(bk.slot)+'〜</span></div><div style="font-size:11px;color:#888;margin-bottom:8px">担当: '+(s?s.n:'—')+'</div><div class="br"><button class="btn" style="color:#a32d2d" onclick="doDel(\''+ dk+'\',\''+k+'\')">削除</button><button class="btn" onclick="hd()">閉じる</button></div>';document.getElementById("ov").className="ov on";}
+
+function load(){
+  fetch(GAS_URL+"?action=load").then(function(r){return r.json();}).then(function(d){
+    if(d.bks)D.bks=d.bks;
+    if(d.staff&&d.staff.length)D.staff=d.staff;
+    if(d.menus&&d.menus.length)D.menus=d.menus;
+    if(d.ts!=null)D.ts=d.ts;
+    if(d.te!=null)D.te=d.te;
+    document.getElementById("sy").textContent="同期済み";render();
+  }).catch(function(){document.getElementById("sy").textContent="オフライン";render();});
+}
+function save(){
+  document.getElementById("sy").textContent="保存中...";
+  fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D))).then(function(){
+    document.getElementById("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+  }).catch(function(){document.getElementById("sy").textContent="保存エラー";});
+}
+
+function render(){
+  document.getElementById("dl").textContent=FD(cur);
+  var sl=SL(),dk=DK(cur),db=D.bks[dk]||{},np=NP();
+  var h='<div class="gh"><div class="sc">スタッフ</div><div class="th">';
+  sl.forEach(function(v){h+='<div class="tc'+(v%1?' hf':'')+'">'+HL(v)+'</div>';});
+  h+='</div></div>';
+  D.staff.forEach(function(s){
+    h+='<div class="sr"><div class="si"><div class="sn">'+s.n+'</div><div class="sm">'+s.r+(s.o?' · 休':'')+'</div></div><div class="sa">';
+    if(s.o)h+='<div style="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999">休日</div>';
+    sl.forEach(function(v){
+      var k=s.id+"_"+v,bk=db[k],c=bk?MC(bk.m):null;
+      if(bk)h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" onclick="showDet(''+dk+'',''+k+'')">'+(v%1?'':bk.n.substring(0,4))+'</div></div>';
+      else if(s.o)h+='<div class="sl'+(v%1?' hf':'')+'" style="background:#e8edf2"></div>';
+      else h+='<div class="sl'+(v%1?' hf':'')+'" onclick="showAdd(''+s.id+'','+v+')"></div>';
+    });
+    if(np!==null)h+='<div class="nl" style="left:'+np+'%"><div class="nd"></div></div>';
+    h+='</div></div>';
+  });
+  document.getElementById("gr").innerHTML=h;
+}
+
+function showAdd(sid,slot){
+  var dk=DK(cur);
+  var so=D.staff.map(function(s){return'<option value="'+s.id+'"'+(s.id===sid?' selected':'')+'>'+s.n+'</option>';}).join('');
+  var mo=D.menus.map(function(m){return'<option value="'+m.n+'">'+m.n+'</option>';}).join('');
+  var df=slot!=null?slot:D.ts,ho='';
+  for(var h=D.ts;h<D.te;h++){ho+='<option value="'+h+'"'+(h===df?' selected':'')+'>'+h+':00</option>';ho+='<option value="'+(h+0.5)+'"'+((h+0.5)===df?' selected':'')+'>'+(h)+':30</option>';}
+  document.getElementById("bx").innerHTML='<div class="bh">予約追加</div><div class="f"><label>お客様名</label><input id="mn" placeholder="山田 花子"/></div><div class="f"><label>メニュー</label><select id="mm">'+mo+'</select></div><div class="f"><label>担当</label><select id="ms">'+so+'</select></div><div class="f"><label>開始</label><select id="mt">'+ho+'</select></div><div class="f"><label>メモ</label><input id="mo" placeholder="任意"/></div><div class="br"><button class="btn" onclick="hd()">キャンセル</button><button class="btn ac" onclick="doAdd(''+dk+'')">追加する</button></div>';
+  document.getElementById("ov").className="ov on";
+}
+function doAdd(dk){
+  var nm=document.getElementById("mn").value.trim();if(!nm){alert("名前を入力");return;}
+  var sid=document.getElementById("ms").value,sv=parseFloat(document.getElementById("mt").value),k=sid+"_"+sv;
+  if(!D.bks[dk])D.bks[dk]={};
+  if(D.bks[dk][k]&&!confirm("上書きしますか？"))return;
+  D.bks[dk][k]={n:nm,m:document.getElementById("mm").value,note:document.getElementById("mo").value,sid:sid,slot:sv};
+  hd();save();render();
+}
+function showDet(dk,k){
+  var bk=D.bks[dk]&&D.bks[dk][k];if(!bk)return;
+  var s=D.staff.find(function(x){return x.id===bk.sid;}),c=MC(bk.m);
+  document.getElementById("bx").innerHTML='<div class="bh">予約詳細</div><div style="background:'+c.b+';color:'+c.t+';border-radius:6px;padding:8px 10px;margin-bottom:10px"><b>'+bk.n+' 様</b><br><span style="font-size:11px">'+bk.m+' · '+HL(bk.slot)+'〜</span></div><div style="font-size:11px;color:#888;margin-bottom:8px">担当: '+(s?s.n:'—')+(bk.note?'<br>メモ: '+bk.note:'')+'</div><div class="br"><button class="btn red" onclick="doDel(''+dk+'',''+k+'')">削除</button><button class="btn" onclick="hd()">閉じる</button></div>';
+  document.getElementById("ov").className="ov on";
+}
 function doDel(dk,k){if(!confirm("削除しますか？"))return;delete D.bks[dk][k];hd();save();render();}
-function showSet(){var sh=D.staff.map(function(s,i){return'<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eee"><div style="flex:1;font-size:12px">'+s.n+'<span style="font-size:10px;color:#999;margin-left:4px">'+s.r+'</span></div><button class="btn" onclick="togOff('+ i+')">'+(s.o?'出勤':'休日')+'</button><button class="btn" onclick="editS('+ i+')"> 編集</button></div>';}).join('');document.getElementById("bx").innerHTML='<div class="bh">スタッフ管理</div>'+sh+'<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end"><button class="btn ac" onclick="addS()">＋追加</button><button class="btn" onclick="hd()">閉じる</button></div>';document.getElementById("ov").className="ov on";}
-function togOff(i){D.staff[i].o=!D.staff[i].o;save();hd();render();}
-function editS(i){var s=D.staff[i];var n=prompt("名前:",s.n);if(!n)return;var r=prompt("役職:",s.r);if(!r)return;D.staff[i].n=n.trim();D.staff[i].r=r.trim();save();showSet();render();}
-function addS(){var n=prompt("スタッフ名:");if(!n||!n.trim())return;var r=prompt("役職:")||"スタッフ";D.staff.push({id:"s"+Date.now(),n:n.trim(),r:r,o:false});save();showSet();render();}
+
+function showSet(){
+  stab="staff";renderSet();
+  document.getElementById("ov").className="ov on";
+}
+function renderSet(){
+  var tabs='<div class="tabs"><button class="tab'+(stab==="staff"?" on":"")+'" onclick="stab='staff';renderSet()">スタッフ</button><button class="tab'+(stab==="menu"?" on":"")+'" onclick="stab='menu';renderSet()">メニュー</button><button class="tab'+(stab==="hours"?" on":"")+'" onclick="stab='hours';renderSet()">営業時間</button></div>';
+  var body="";
+  if(stab==="staff"){
+    body='<div style="font-size:11px;color:#888;margin-bottom:8px">スタッフ管理</div>';
+    D.staff.forEach(function(s,i){body+='<div class="row"><div style="flex:1;font-size:12px">'+s.n+'<span style="font-size:10px;color:#999;margin-left:4px">'+s.r+'</span></div><button class="btn" onclick="togOff('+i+')">'+(s.o?'出勤':'休日')+'</button><button class="btn" onclick="editS('+i+')">編集</button><button class="btn red" onclick="delS('+i+')">削</button></div>';});
+    body+='<div class="br"><button class="btn ac" onclick="addS()">＋スタッフ追加</button></div>';
+  } else if(stab==="menu"){
+    body='<div style="font-size:11px;color:#888;margin-bottom:8px">メニュー管理</div>';
+    D.menus.forEach(function(m,i){body+='<div class="row"><div class="cdot" style="background:'+COLS[m.c]+'"></div><div style="flex:1;font-size:12px">'+m.n+'</div><button class="btn" onclick="editM('+i+')">編集</button><button class="btn red" onclick="delM('+i+')">削</button></div>';});
+    body+='<div class="br"><button class="btn ac" onclick="addM()">＋メニュー追加</button></div>';
+  } else {
+    var hs="",he="";
+    for(var h=0;h<=23;h++){hs+='<option value="'+h+'"'+(h===D.ts?" selected":"")+'>'+String(h).padStart(2,"0")+':00</option>';}
+    for(var h=1;h<=24;h++){he+='<option value="'+h+'"'+(h===D.te?" selected":"")+'>'+String(h).padStart(2,"0")+':00</option>';}
+    body='<div style="font-size:11px;color:#888;margin-bottom:8px">営業時間設定</div><div class="f"><label>開始時間</label><select id="ts" onchange="D.ts=parseInt(this.value)">'+hs+'</select></div><div class="f"><label>終了時間</label><select id="te" onchange="D.te=parseInt(this.value)">'+he+'</select></div><div class="br"><button class="btn ac" onclick="save();hd();render()">保存する</button></div>';
+  }
+  document.getElementById("bx").innerHTML='<div class="bh">設定</div>'+tabs+body+'<div class="br" style="margin-top:8px"><button class="btn" onclick="hd()">閉じる</button></div>';
+}
+function togOff(i){D.staff[i].o=!D.staff[i].o;save();renderSet();render();}
+function editS(i){var s=D.staff[i];var n=prompt("名前:",s.n);if(!n)return;var r=prompt("役職:",s.r);if(!r)return;D.staff[i].n=n.trim();D.staff[i].r=r.trim();save();renderSet();render();}
+function delS(i){if(!confirm("削除しますか？"))return;D.staff.splice(i,1);save();renderSet();render();}
+function addS(){var n=prompt("スタッフ名:");if(!n||!n.trim())return;var r=prompt("役職:")||"スタッフ";D.staff.push({id:"s"+Date.now(),n:n.trim(),r:r,o:false});save();renderSet();render();}
+function editM(i){var m=D.menus[i];var n=prompt("メニュー名:",m.n);if(!n)return;D.menus[i].n=n.trim();save();renderSet();}
+function delM(i){if(!confirm("削除しますか？"))return;D.menus.splice(i,1);save();renderSet();}
+function addM(){
+  var n=prompt("メニュー名:");if(!n||!n.trim())return;
+  var ci=prompt("カラー番号(0-7):
+0:紫 1:緑 2:オレンジ 3:ピンク 4:黄 5:ブルー 6:黄緑 7:赤","0");
+  var c=parseInt(ci)||0;if(c<0||c>7)c=0;
+  D.menus.push({n:n.trim(),c:c});save();renderSet();
+}
 load();
 setInterval(load,20000);
 </script>
