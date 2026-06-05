@@ -54,169 +54,372 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 </head>
 <body>
 <div class="bar">
-<div class="ti">✂ レッスン予約表</div>
-<button class="btn" onclick="cd(-1)">◄</button>
-<div class="dl" id="dl"></div>
-<button class="btn" onclick="cd(1)">►</button>
-<button class="btn" onclick="gt()">今日</button>
-<button class="btn ac" onclick="showAdd(null,null)">＋予約</button>
-<button class="btn" onclick="showSet()">設定</button>
+  <div class="ti">✂ レッスン予約表</div>
+  <button class="btn" onclick="cd(-1)">◄</button>
+  <div class="dl" id="dl"></div>
+  <button class="btn" onclick="cd(1)">►</button>
+  <button class="btn" onclick="gt()">今日</button>
+  <button class="btn ac" onclick="showAdd(null,null)">＋予約</button>
+  <button class="btn" onclick="showSet()">設定</button>
 </div>
 <div class="sy" id="sy">読み込み中...</div>
 <div class="gw"><div class="gi" id="gr"></div></div>
 <div class="ov" id="ov" onclick="if(event.target===this)hd()"><div class="box" id="bx"></div></div>
+
 <script>
-var GAS_URL="https://script.google.com/macros/s/AKfycbyYKdJsrH43QlIIujIIEf-8xLZJtkWgZTYwcjz-pvQHcg5n50hVy8iKdVi66mcvL9cS/exec";
-var WK=["日","月","火","水","木","金","土"];
-var COLS=["#CECBF6","#9FE1CB","#F5C4B3","#F4C0D1","#FAC775","#B5D4F4","#C0DD97","#F7C1C1"];
-var TCOLS=["#3C3489","#085041","#712B13","#72243E","#633806","#0C447C","#27500A","#791F1F"];
-var D={bks:{},staff:[{id:"s1",n:"スタッフA",r:"スタイリスト",o:false},{id:"s2",n:"スタッフB",r:"スタイリスト",o:false},{id:"s3",n:"スタッフC",r:"アシスタント",o:false}],menus:[{n:"カット",c:0},{n:"カラー",c:1},{n:"パーマ",c:2},{n:"トリート",c:3},{n:"シャンプー",c:4}],ts:9,te:19};
-var cur=new Date();var stab="staff";var nc=0;
-function DK(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
-function FD(d){return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+WK[d.getDay()]+"）";}
-function HL(v){return Math.floor(v)+":"+(v%1?"30":"00");}
-function SL(){var a=[];for(var h=D.ts;h<D.te;h++){a.push(h);a.push(h+0.5);}return a;}
-function MC(n){var m=D.menus.find(function(x){return x.n===n;});return m?{b:COLS[m.c],t:TCOLS[m.c]}:{b:COLS[0],t:TCOLS[0]};}
-function cd(n){cur=new Date(cur);cur.setDate(cur.getDate()+n);render();}
-function gt(){cur=new Date();render();}
-function hd(){document.getElementById("ov").className="ov";}
-function NP(){var now=new Date();if(now.toDateString()!==cur.toDateString())return null;var tot=(D.te-D.ts)*60,el=(now.getHours()-D.ts)*60+now.getMinutes();if(el<0||el>tot)return null;return(el/tot)*100;}
+var GAS_URL = "https://script.google.com/macros/s/AKfycbyYKdJsrH43QlIIujIIEf-8xLZJtkWgZTYwcjz-pvQHcg5n50hVy8iKdVi66mcvL9cS/exec";
+var WK = ["日","月","火","水","木","金","土"];
+var COLS  = ["#CECBF6","#9FE1CB","#F5C4B3","#F4C0D1","#FAC775","#B5D4F4","#C0DD97","#F7C1C1"];
+var TCOLS = ["#3C3489","#085041","#712B13","#72243E","#633806","#0C447C","#27500A","#791F1F"];
+var D = {
+  bks: {},
+  staff: [
+    {id:"s1",n:"スタッフA",r:"スタイリスト",o:false},
+    {id:"s2",n:"スタッフB",r:"スタイリスト",o:false},
+    {id:"s3",n:"スタッフC",r:"アシスタント",o:false}
+  ],
+  menus: [
+    {n:"カット",c:0},{n:"カラー",c:1},{n:"パーマ",c:2},{n:"トリート",c:3},{n:"シャンプー",c:4}
+  ],
+  ts: 9, te: 19
+};
+var cur = new Date();
+var stab = "staff";
+
+/* ---- ユーティリティ ---- */
+function DK(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function FD(d){ return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+WK[d.getDay()]+"）"; }
+function HL(v){ return Math.floor(v)+":"+(v%1?"30":"00"); }
+function SL(){ var a=[]; for(var h=D.ts;h<D.te;h++){a.push(h);a.push(h+0.5);} return a; }
+function MC(n){ var m=D.menus.find(function(x){return x.n===n;}); return m?{b:COLS[m.c],t:TCOLS[m.c]}:{b:COLS[0],t:TCOLS[0]}; }
+function el(id){ return document.getElementById(id); }
+function mk(tag,attrs,text){
+  var e = document.createElement(tag);
+  Object.keys(attrs||{}).forEach(function(k){ e.setAttribute(k,attrs[k]); });
+  if(text!=null) e.textContent = text;
+  return e;
+}
+function hd(){ el("ov").className="ov"; }
+function cd(n){ cur=new Date(cur); cur.setDate(cur.getDate()+n); render(); }
+function gt(){ cur=new Date(); render(); }
+
+function NP(){
+  var now=new Date();
+  if(now.toDateString()!==cur.toDateString()) return null;
+  var tot=(D.te-D.ts)*60, e=(now.getHours()-D.ts)*60+now.getMinutes();
+  if(e<0||e>tot) return null;
+  return (e/tot)*100;
+}
+
+/* ---- データ通信 ---- */
 function load(){
-fetch(GAS_URL+"?action=load").then(function(r){return r.json();}).then(function(d){
-if(d.bks)D.bks=d.bks;
-if(d.staff&&d.staff.length)D.staff=d.staff;
-if(d.menus&&d.menus.length)D.menus=d.menus;
-if(d.ts!=null)D.ts=d.ts;
-if(d.te!=null)D.te=d.te;
-document.getElementById("sy").textContent="同期済み";render();
-}).catch(function(){document.getElementById("sy").textContent="オフライン";render();});
+  fetch(GAS_URL+"?action=load")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.bks) D.bks=d.bks;
+      if(d.staff&&d.staff.length) D.staff=d.staff;
+      if(d.menus&&d.menus.length) D.menus=d.menus;
+      if(d.ts!=null) D.ts=d.ts;
+      if(d.te!=null) D.te=d.te;
+      el("sy").textContent="同期済み"; render();
+    })
+    .catch(function(){ el("sy").textContent="オフライン"; render(); });
 }
 function save(){
-document.getElementById("sy").textContent="保存中...";
-fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D))).then(function(){
-document.getElementById("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
-}).catch(function(){document.getElementById("sy").textContent="保存エラー";});
+  el("sy").textContent="保存中...";
+  fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D)))
+    .then(function(){ el("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}); })
+    .catch(function(){ el("sy").textContent="保存エラー"; });
 }
+
+/* ---- 描画（DOM操作で引用符問題を完全回避） ---- */
 function render(){
-document.getElementById("dl").textContent=FD(cur);
-var sl=SL(),dk=DK(cur),db=D.bks[dk]||{},np=NP();
-var h='<div class="gh"><div class="sc">スタッフ</div><div class="th">';
-sl.forEach(function(v){h+='<div class="tc'+(v%1?' hf':'')+'">'+HL(v)+'</div>';});
-h+='</div></div>';
-D.staff.forEach(function(s){
-h+='<div class="sr"><div class="si"><div class="sn">'+s.n+'</div><div class="sm">'+s.r+(s.o?' · 休':'')+'</div></div><div class="sa">';
-if(s.o)h+='<div style="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999">休日</div>';
-sl.forEach(function(v){
-var k=s.id+"_"+v,bk=db[k],c=bk?MC(bk.m):null;
-if(bk){h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" data-dk="'+dk+'" data-k="'+k+'" onclick="showDetEl(this)">'+(v%1?'':(bk.n||"").substring(0,4))+'</div></div>';}
-else if(s.o){h+='<div class="sl'+(v%1?' hf':'')+'" style="background:#e8edf2"></div>';}
-else{h+='<div class="sl'+(v%1?' hf':'')+'" data-sid="'+s.id+'" data-v="'+v+'" onclick="showAddEl(this)"></div>';}
-});
-if(np!==null)h+='<div class="nl" style="left:'+np+'%"><div class="nd"></div></div>';
-h+='</div></div>';
-});
-document.getElementById("gr").innerHTML=h;
+  el("dl").textContent = FD(cur);
+  var sl=SL(), dk=DK(cur), db=D.bks[dk]||{}, np=NP();
+  var grid = el("gr");
+  grid.innerHTML = "";
+
+  /* ヘッダー行 */
+  var gh = mk("div",{class:"gh"});
+  gh.appendChild(mk("div",{class:"sc"},"スタッフ"));
+  var th = mk("div",{class:"th"});
+  sl.forEach(function(v){
+    th.appendChild(mk("div",{class:"tc"+(v%1?" hf":"")},HL(v)));
+  });
+  gh.appendChild(th);
+  grid.appendChild(gh);
+
+  /* スタッフ行 */
+  D.staff.forEach(function(s){
+    var sr = mk("div",{class:"sr"});
+    var si = mk("div",{class:"si"});
+    si.appendChild(mk("div",{class:"sn"},s.n));
+    si.appendChild(mk("div",{class:"sm"},s.r+(s.o?" · 休":"")));
+    sr.appendChild(si);
+
+    var sa = mk("div",{class:"sa"});
+    if(s.o){
+      var off = mk("div",{},"休日");
+      off.style.cssText="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999";
+      sa.appendChild(off);
+    }
+
+    sl.forEach(function(v){
+      var k = s.id+"_"+v;
+      var bk = db[k];
+      var slDiv = mk("div",{class:"sl"+(v%1?" hf":"")});
+      if(bk){
+        var c = MC(bk.m);
+        var bkDiv = mk("div",{class:"bk"},v%1?"":( (bk.n||"").substring(0,4) ));
+        bkDiv.style.background = c.b;
+        bkDiv.style.color = c.t;
+        /* クロージャで dk,k を安全にキャプチャ */
+        (function(dk2,k2){
+          bkDiv.addEventListener("click", function(){ showDet(dk2,k2); });
+        })(dk,k);
+        slDiv.appendChild(bkDiv);
+      } else if(s.o){
+        slDiv.style.background="#e8edf2";
+      } else {
+        (function(sid2,v2){
+          slDiv.addEventListener("click", function(){ showAdd(sid2,v2); });
+        })(s.id,v);
+      }
+      sa.appendChild(slDiv);
+    });
+
+    /* 現在時刻ライン */
+    if(np!==null){
+      var nl = mk("div",{class:"nl"});
+      nl.style.left=np+"%";
+      nl.appendChild(mk("div",{class:"nd"}));
+      sa.appendChild(nl);
+    }
+    sr.appendChild(sa);
+    grid.appendChild(sr);
+  });
 }
-function showDetEl(el){showDet(el.dataset.dk,el.dataset.k);}
-function showAddEl(el){showAdd(el.dataset.sid,parseFloat(el.dataset.v));}
-function delBkEl(el){delBk(el.dataset.dk,el.dataset.k);}
+
+/* ---- モーダル ---- */
 function showDet(dk,k){
-var db=D.bks[dk]||{},bk=db[k];if(!bk)return;
-var s=D.staff.find(function(x){return k.startsWith(x.id);});
-var parts=k.split("_"),v=parseFloat(parts[parts.length-1]);
-var h='<div class="bh">予約詳細</div>';
-h+='<div class="f"><label>お客様名</label><div style="font-size:13px;font-weight:bold">'+bk.n+'</div></div>';
-h+='<div class="f"><label>メニュー</label><div>'+bk.m+'</div></div>';
-h+='<div class="f"><label>スタッフ</label><div>'+(s?s.n:'')+'</div></div>';
-h+='<div class="f"><label>時間</label><div>'+HL(v)+'〜</div></div>';
-if(bk.memo)h+='<div class="f"><label>メモ</label><div>'+bk.memo+'</div></div>';
-h+='<div class="br">';
-h+='<button class="btn red" data-dk="'+dk+'" data-k="'+k+'" onclick="delBkEl(this)">削除</button>';
-h+='<button class="btn" onclick="hd()">閉じる</button>';
-h+='</div>';
-document.getElementById("bx").innerHTML=h;
-document.getElementById("ov").className="ov on";
+  var db=D.bks[dk]||{}, bk=db[k]; if(!bk) return;
+  var s=D.staff.find(function(x){return k.startsWith(x.id);});
+  var parts=k.split("_"), v=parseFloat(parts[parts.length-1]);
+  var box = el("bx");
+  box.innerHTML="";
+
+  box.appendChild(mk("div",{class:"bh"},"予約詳細"));
+
+  function row(label,val){
+    var f=mk("div",{class:"f"});
+    f.appendChild(mk("label",{},label));
+    var d=mk("div",{},val);
+    if(label==="お客様名") d.style.cssText="font-size:13px;font-weight:bold";
+    f.appendChild(d);
+    box.appendChild(f);
+  }
+  row("お客様名", bk.n);
+  row("メニュー",  bk.m);
+  row("スタッフ",  s?s.n:"");
+  row("時間",      HL(v)+"〜");
+  if(bk.memo) row("メモ", bk.memo);
+
+  var br = mk("div",{class:"br"});
+  var delBtn = mk("button",{class:"btn red"},"削除");
+  delBtn.addEventListener("click", function(){
+    if(!confirm("削除しますか？")) return;
+    if(D.bks[dk]) delete D.bks[dk][k];
+    hd(); render(); save();
+  });
+  br.appendChild(delBtn);
+  var closeBtn = mk("button",{class:"btn"},"閉じる");
+  closeBtn.addEventListener("click", hd);
+  br.appendChild(closeBtn);
+  box.appendChild(br);
+
+  el("ov").className="ov on";
 }
+
 function showAdd(sid,v){
-var sl=SL();
-var h='<div class="bh">予約追加</div>';
-h+='<div class="f"><label>お客様名</label><input id="fn" placeholder="お名前"></div>';
-h+='<div class="f"><label>メニュー</label><select id="fm"><option value="">選択...</option>';
-D.menus.forEach(function(m){h+='<option>'+m.n+'</option>';});
-h+='</select></div>';
-h+='<div class="f"><label>スタッフ</label><select id="fs">';
-D.staff.filter(function(s){return !s.o;}).forEach(function(s){h+='<option value="'+s.id+'"'+(s.id===sid?' selected':'')+'>'+s.n+'</option>';});
-h+='</select></div>';
-h+='<div class="f"><label>時間</label><select id="fv">';
-sl.forEach(function(t){h+='<option value="'+t+'"'+(t===v?' selected':'')+'>'+HL(t)+'</option>';});
-h+='</select></div>';
-h+='<div class="f"><label>日付</label><input type="date" id="fd" value="'+DK(cur)+'"></div>';
-h+='<div class="f"><label>メモ</label><input id="fmm" placeholder="任意"></div>';
-h+='<div class="br"><button class="btn" onclick="hd()">キャンセル</button><button class="btn ac" onclick="addBk()">追加</button></div>';
-document.getElementById("bx").innerHTML=h;
-document.getElementById("ov").className="ov on";
+  var sl=SL();
+  var box=el("bx");
+  box.innerHTML="";
+  box.appendChild(mk("div",{class:"bh"},"予約追加"));
+
+  function field(label,child){
+    var f=mk("div",{class:"f"});
+    f.appendChild(mk("label",{},label));
+    f.appendChild(child);
+    box.appendChild(f);
+  }
+
+  var fn=mk("input",{id:"fn",placeholder:"お名前"});
+  field("お客様名",fn);
+
+  var fm=mk("select",{id:"fm"});
+  fm.appendChild(mk("option",{value:""},"選択..."));
+  D.menus.forEach(function(m){ fm.appendChild(mk("option",{},m.n)); });
+  field("メニュー",fm);
+
+  var fs=mk("select",{id:"fs"});
+  D.staff.filter(function(s){return !s.o;}).forEach(function(s){
+    var o=mk("option",{value:s.id},s.n);
+    if(s.id===sid) o.selected=true;
+    fs.appendChild(o);
+  });
+  field("スタッフ",fs);
+
+  var fv=mk("select",{id:"fv"});
+  sl.forEach(function(t){
+    var o=mk("option",{value:String(t)},HL(t));
+    if(t===v) o.selected=true;
+    fv.appendChild(o);
+  });
+  field("時間",fv);
+
+  var fd=mk("input",{id:"fd",type:"date",value:DK(cur)});
+  field("日付",fd);
+
+  var fmm=mk("input",{id:"fmm",placeholder:"任意"});
+  field("メモ",fmm);
+
+  var br=mk("div",{class:"br"});
+  var cancelBtn=mk("button",{class:"btn"},"キャンセル");
+  cancelBtn.addEventListener("click",hd);
+  br.appendChild(cancelBtn);
+  var addBtn=mk("button",{class:"btn ac"},"追加");
+  addBtn.addEventListener("click",function(){
+    var n=el("fn").value.trim();
+    var m=el("fm").value;
+    var sid2=el("fs").value;
+    var v2=parseFloat(el("fv").value);
+    var fd2=el("fd").value;
+    var memo=el("fmm").value.trim();
+    if(!n||!m||!sid2){ alert("お名前・メニュー・スタッフを入力してください"); return; }
+    if(!D.bks[fd2]) D.bks[fd2]={};
+    D.bks[fd2][sid2+"_"+v2]={n:n,m:m,memo:memo};
+    hd(); render(); save();
+  });
+  br.appendChild(addBtn);
+  box.appendChild(br);
+
+  el("ov").className="ov on";
 }
-function addBk(){
-var n=document.getElementById("fn").value.trim();
-var m=document.getElementById("fm").value;
-var sid=document.getElementById("fs").value;
-var v=parseFloat(document.getElementById("fv").value);
-var fd=document.getElementById("fd").value;
-var memo=document.getElementById("fmm").value.trim();
-if(!n||!m||!sid)return alert("お名前・メニュー・スタッフを入力してください");
-var dk=fd;
-if(!D.bks[dk])D.bks[dk]={};
-var k=sid+"_"+v;
-D.bks[dk][k]={n:n,m:m,memo:memo};
-hd();render();save();
-}
-function delBk(dk,k){
-if(!confirm("削除しますか？"))return;
-if(D.bks[dk])delete D.bks[dk][k];
-hd();render();save();
-}
+
+/* ---- 設定 ---- */
 function showSet(){
-var h='<div class="bh">設定</div>';
-h+='<div class="tabs">';
-["staff","menu","time"].forEach(function(t){h+='<div class="tab'+(stab===t?' on':'')+'" onclick="stTab(\''+t+'\')">'+(t=="staff"?"スタッフ":t=="menu"?"メニュー":"時間")+'</div>';});
-h+='</div><div id="stcont"></div>';
-document.getElementById("bx").innerHTML=h;
-document.getElementById("ov").className="ov on";
-stTab(stab);
+  var box=el("bx");
+  box.innerHTML="";
+  box.appendChild(mk("div",{class:"bh"},"設定"));
+
+  var tabs=mk("div",{class:"tabs"});
+  ["staff","menu","time"].forEach(function(t){
+    var tab=mk("div",{class:"tab"+(stab===t?" on":"")},{staff:"スタッフ",menu:"メニュー",time:"時間"}[t]);
+    tab.textContent={staff:"スタッフ",menu:"メニュー",time:"時間"}[t];
+    tab.addEventListener("click",function(){ stab=t; showSet(); });
+    tabs.appendChild(tab);
+  });
+  box.appendChild(tabs);
+
+  var cont=mk("div",{id:"stcont"});
+
+  if(stab==="staff"){
+    D.staff.forEach(function(s,i){
+      var row=mk("div",{class:"row"});
+      var dot=mk("div",{class:"cdot"});
+      dot.style.background=COLS[i%COLS.length];
+      row.appendChild(dot);
+      var inN=mk("input",{value:s.n});
+      inN.style.cssText="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px";
+      inN.addEventListener("change",function(){ D.staff[i].n=this.value; });
+      row.appendChild(inN);
+      var inR=mk("input",{value:s.r});
+      inR.style.cssText="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px";
+      inR.addEventListener("change",function(){ D.staff[i].r=this.value; });
+      row.appendChild(inR);
+      var cb=mk("input",{type:"checkbox",title:"休日"});
+      cb.checked=s.o;
+      cb.addEventListener("change",function(){ D.staff[i].o=this.checked; });
+      row.appendChild(cb);
+      var del=mk("button",{class:"btn red"},"✕");
+      del.addEventListener("click",function(){ D.staff.splice(i,1); showSet(); });
+      row.appendChild(del);
+      cont.appendChild(row);
+    });
+    var addBtn=mk("button",{class:"btn"},"＋追加");
+    addBtn.style.marginTop="8px";
+    addBtn.addEventListener("click",function(){ D.staff.push({id:"s"+Date.now(),n:"新スタッフ",r:"",o:false}); showSet(); });
+    cont.appendChild(addBtn);
+
+  } else if(stab==="menu"){
+    D.menus.forEach(function(m,i){
+      var row=mk("div",{class:"row"});
+      var inN=mk("input",{value:m.n});
+      inN.style.cssText="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px";
+      inN.addEventListener("change",function(){ D.menus[i].n=this.value; });
+      row.appendChild(inN);
+      var copts=mk("div",{class:"copts"});
+      COLS.forEach(function(c,ci){
+        var opt=mk("div",{class:"copt"+(m.c===ci?" sel":"")});
+        opt.style.background=c;
+        opt.addEventListener("click",function(){ D.menus[i].c=ci; showSet(); });
+        copts.appendChild(opt);
+      });
+      row.appendChild(copts);
+      var del=mk("button",{class:"btn red"},"✕");
+      del.addEventListener("click",function(){ D.menus.splice(i,1); showSet(); });
+      row.appendChild(del);
+      cont.appendChild(row);
+    });
+    var addBtn2=mk("button",{class:"btn"},"＋追加");
+    addBtn2.style.marginTop="8px";
+    addBtn2.addEventListener("click",function(){ D.menus.push({n:"新メニュー",c:0}); showSet(); });
+    cont.appendChild(addBtn2);
+
+  } else {
+    var fts=mk("div",{class:"f"});
+    fts.appendChild(mk("label",{},"開始時間"));
+    var sts=mk("select",{id:"sts"});
+    for(var i=6;i<=12;i++){
+      var o=mk("option",{value:String(i)},i+"時");
+      if(D.ts===i) o.selected=true;
+      sts.appendChild(o);
+    }
+    fts.appendChild(sts);
+    cont.appendChild(fts);
+
+    var fte=mk("div",{class:"f"});
+    fte.appendChild(mk("label",{},"終了時間"));
+    var ste=mk("select",{id:"ste"});
+    for(var j=17;j<=23;j++){
+      var o2=mk("option",{value:String(j)},j+"時");
+      if(D.te===j) o2.selected=true;
+      ste.appendChild(o2);
+    }
+    fte.appendChild(ste);
+    cont.appendChild(fte);
+
+    var apBtn=mk("button",{class:"btn ac"},"適用");
+    apBtn.style.marginTop="8px";
+    apBtn.addEventListener("click",function(){
+      D.ts=parseInt(el("sts").value);
+      D.te=parseInt(el("ste").value);
+      render();
+    });
+    cont.appendChild(apBtn);
+  }
+
+  /* 保存ボタン */
+  var svBr=mk("div",{class:"br"});
+  var svBtn=mk("button",{class:"btn ac"},"保存して閉じる");
+  svBtn.addEventListener("click",function(){ hd(); render(); save(); });
+  svBr.appendChild(svBtn);
+  cont.appendChild(svBr);
+
+  box.appendChild(cont);
+  el("ov").className="ov on";
 }
-function stTab(t){
-stab=t;
-document.querySelectorAll(".tab").forEach(function(el){el.className="tab"+(el.textContent===(t=="staff"?"スタッフ":t=="menu"?"メニュー":"時間")?' on':'')';});
-var h="";
-if(t==="staff"){
-D.staff.forEach(function(s,i){
-h+='<div class="row"><div class="cdot" style="background:'+COLS[i%COLS.length]+'"></div>';
-h+='<input value="'+s.n+'" onchange="D.staff['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
-h+='<input value="'+s.r+'" onchange="D.staff['+i+'].r=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
-h+='<input type="checkbox"'+(s.o?' checked':'')+' onchange="D.staff['+i+'].o=this.checked" title="休日">';
-h+='<button class="btn red" onclick="D.staff.splice('+i+',1);stTab(\'staff\')">✕</button></div>';
-});
-h+='<button class="btn" style="margin-top:8px" onclick="D.staff.push({id:\'s\'+(Date.now()),n:\'新スタッフ\',r:\'\',o:false});stTab(\'staff\')">＋追加</button>';
-}else if(t==="menu"){
-D.menus.forEach(function(m,i){
-h+='<div class="row"><input value="'+m.n+'" onchange="D.menus['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
-h+='<div class="copts">';
-COLS.forEach(function(c,ci){h+='<div class="copt'+(m.c===ci?' sel':'')+'" style="background:'+c+'" onclick="D.menus['+i+'].c='+ci+';stTab(\'menu\')" ></div>';});
-h+='</div><button class="btn red" onclick="D.menus.splice('+i+',1);stTab(\'menu\')">✕</button></div>';
-});
-h+='<button class="btn" style="margin-top:8px" onclick="D.menus.push({n:\'新メニュー\',c:0});stTab(\'menu\')">＋追加</button>';
-}else{
-h+='<div class="f"><label>開始時間</label><select id="sts">';
-for(var i=6;i<=12;i++)h+='<option value="'+i+'"'+(D.ts===i?' selected':'')+'>'+i+'時</option>';
-h+='</select></div>';
-h+='<div class="f"><label>終了時間</label><select id="ste">';
-for(var i=17;i<=23;i++)h+='<option value="'+i+'"'+(D.te===i?' selected':'')+'>'+i+'時</option>';
-h+='</select></div>';
-h+='<button class="btn ac" style="margin-top:8px" onclick="D.ts=parseInt(document.getElementById(\'sts\').value);D.te=parseInt(document.getElementById(\'ste\').value);render()">適用</button>';
-}
-document.getElementById("stcont").innerHTML=h;
-}
-function svSet(){hd();render();save();}
+
 load();
 </script>
 </body>
