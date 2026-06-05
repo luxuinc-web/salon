@@ -108,7 +108,7 @@ h+='<div class="sr"><div class="si"><div class="sn">'+s.n+'</div><div class="sm"
 if(s.o)h+='<div style="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999">休日</div>';
 sl.forEach(function(v){
 var k=s.id+"_"+v,bk=db[k],c=bk?MC(bk.m):null;
-if(bk){h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" data-dk="'+dk+'" data-k="'+k+'" onclick="showDetEl(this)">'+(v%1?'':bk.n.substring(0,4))+'</div></div>';}
+if(bk){h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" data-dk="'+dk+'" data-k="'+k+'" onclick="showDetEl(this)">'+(v%1?'':(bk.n||"").substring(0,4))+'</div></div>';}
 else if(s.o){h+='<div class="sl'+(v%1?' hf':'')+'" style="background:#e8edf2"></div>';}
 else{h+='<div class="sl'+(v%1?' hf':'')+'" data-sid="'+s.id+'" data-v="'+v+'" onclick="showAddEl(this)"></div>';}
 });
@@ -119,6 +119,7 @@ document.getElementById("gr").innerHTML=h;
 }
 function showDetEl(el){showDet(el.dataset.dk,el.dataset.k);}
 function showAddEl(el){showAdd(el.dataset.sid,parseFloat(el.dataset.v));}
+function delBkEl(el){delBk(el.dataset.dk,el.dataset.k);}
 function showDet(dk,k){
 var db=D.bks[dk]||{},bk=db[k];if(!bk)return;
 var s=D.staff.find(function(x){return k.startsWith(x.id);});
@@ -130,7 +131,7 @@ h+='<div class="f"><label>スタッフ</label><div>'+(s?s.n:'')+'</div></div>';
 h+='<div class="f"><label>時間</label><div>'+HL(v)+'〜</div></div>';
 if(bk.memo)h+='<div class="f"><label>メモ</label><div>'+bk.memo+'</div></div>';
 h+='<div class="br">';
-h+='<button class="btn red" onclick="delBk(''+dk+'',''+k+'')">削除</button>';
+h+='<button class="btn red" data-dk="'+dk+'" data-k="'+k+'" onclick="delBkEl(this)">削除</button>';
 h+='<button class="btn" onclick="hd()">閉じる</button>';
 h+='</div>';
 document.getElementById("bx").innerHTML=h;
@@ -177,7 +178,7 @@ hd();render();save();
 function showSet(){
 var h='<div class="bh">設定</div>';
 h+='<div class="tabs">';
-["staff","menu","time"].forEach(function(t){h+='<div class="tab'+(stab===t?' on':'')+'" onclick="stTab(''+t+'')">'+{staff:"スタッフ",menu:"メニュー",time:"時間"}[t]+'</div>';});
+["staff","menu","time"].forEach(function(t){h+='<div class="tab'+(stab===t?' on':'')+'" onclick="stTab(\''+t+'\')">'+(t=="staff"?"スタッフ":t=="menu"?"メニュー":"時間")+'</div>';});
 h+='</div><div id="stcont"></div>';
 document.getElementById("bx").innerHTML=h;
 document.getElementById("ov").className="ov on";
@@ -185,7 +186,7 @@ stTab(stab);
 }
 function stTab(t){
 stab=t;
-document.querySelectorAll(".tab").forEach(function(el){el.className="tab"+(el.textContent==={staff:"スタッフ",menu:"メニュー",time:"時間"}[t]?' on':'');});
+document.querySelectorAll(".tab").forEach(function(el){el.className="tab"+(el.textContent===(t=="staff"?"スタッフ":t=="menu"?"メニュー":"時間")?' on':'')';});
 var h="";
 if(t==="staff"){
 D.staff.forEach(function(s,i){
@@ -193,17 +194,17 @@ h+='<div class="row"><div class="cdot" style="background:'+COLS[i%COLS.length]+'
 h+='<input value="'+s.n+'" onchange="D.staff['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
 h+='<input value="'+s.r+'" onchange="D.staff['+i+'].r=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
 h+='<input type="checkbox"'+(s.o?' checked':'')+' onchange="D.staff['+i+'].o=this.checked" title="休日">';
-h+='<button class="btn red" onclick="D.staff.splice('+i+',1);stTab('staff')">✕</button></div>';
+h+='<button class="btn red" onclick="D.staff.splice('+i+',1);stTab(\'staff\')">✕</button></div>';
 });
-h+='<button class="btn" style="margin-top:8px" onclick="D.staff.push({id:'s'+(Date.now()),n:'新スタッフ',r:'',o:false});stTab('staff')">＋追加</button>';
+h+='<button class="btn" style="margin-top:8px" onclick="D.staff.push({id:\'s\'+(Date.now()),n:\'新スタッフ\',r:\'\',o:false});stTab(\'staff\')">＋追加</button>';
 }else if(t==="menu"){
 D.menus.forEach(function(m,i){
 h+='<div class="row"><input value="'+m.n+'" onchange="D.menus['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
 h+='<div class="copts">';
-COLS.forEach(function(c,ci){h+='<div class="copt'+(m.c===ci?' sel':'')+'" style="background:'+c+'" onclick="D.menus['+i+'].c='+ci+';stTab('menu')"></div>';});
-h+='</div><button class="btn red" onclick="D.menus.splice('+i+',1);stTab('menu')">✕</button></div>';
+COLS.forEach(function(c,ci){h+='<div class="copt'+(m.c===ci?' sel':'')+'" style="background:'+c+'" onclick="D.menus['+i+'].c='+ci+';stTab(\'menu\')" ></div>';});
+h+='</div><button class="btn red" onclick="D.menus.splice('+i+',1);stTab(\'menu\')">✕</button></div>';
 });
-h+='<button class="btn" style="margin-top:8px" onclick="D.menus.push({n:'新メニュー',c:0});stTab('menu')">＋追加</button>';
+h+='<button class="btn" style="margin-top:8px" onclick="D.menus.push({n:\'新メニュー\',c:0});stTab(\'menu\')">＋追加</button>';
 }else{
 h+='<div class="f"><label>開始時間</label><select id="sts">';
 for(var i=6;i<=12;i++)h+='<option value="'+i+'"'+(D.ts===i?' selected':'')+'>'+i+'時</option>';
@@ -211,7 +212,7 @@ h+='</select></div>';
 h+='<div class="f"><label>終了時間</label><select id="ste">';
 for(var i=17;i<=23;i++)h+='<option value="'+i+'"'+(D.te===i?' selected':'')+'>'+i+'時</option>';
 h+='</select></div>';
-h+='<button class="btn ac" style="margin-top:8px" onclick="D.ts=parseInt(document.getElementById('sts').value);D.te=parseInt(document.getElementById('ste').value);render()">適用</button>';
+h+='<button class="btn ac" style="margin-top:8px" onclick="D.ts=parseInt(document.getElementById(\'sts\').value);D.te=parseInt(document.getElementById(\'ste\').value);render()">適用</button>';
 }
 document.getElementById("stcont").innerHTML=h;
 }
