@@ -1,238 +1,222 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>レッスン予約表</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
-    .bar{background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid #ddd}
-    .ti{font-weight:bold;flex:1;color:#1a3a5c;font-size:14px}
-    .dl{font-size:12px;font-weight:bold;color:#1a3a5c;min-width:130px;text-align:center}
-    .btn{border:1px solid #bbb;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:#fff}
-    .btn.ac{background:#1a5fa8;color:#fff;border-color:#1a5fa8}
-    .btn.red{color:#a32d2d}
-    .sy{font-size:11px;color:#888;margin-bottom:6px}
-    .gw{overflow-x:auto;border:1px solid #ddd;border-radius:10px;background:#fff}
-    .gi{min-width:600px}
-    .gh{display:flex;background:#f0f4f8;border-bottom:1px solid #ddd;border-radius:10px 10px 0 0}
-    .sc{width:95px;min-width:95px;padding:5px 6px;font-size:10px;color:#888;border-right:1px solid #ddd}
-    .th{flex:1;display:flex}
-    .tc{flex:1;text-align:center;padding:4px 0;font-size:9px;color:#666;border-left:1px solid #e8f0f8;min-width:0}
-    .tc.hf{color:#bbb}
-    .sr{display:flex;border-bottom:1px solid #eee}
-    .sr:last-child{border-bottom:none}
-    .si{width:95px;min-width:95px;padding:4px 6px;border-right:1px solid #ddd;background:#f7fafd}
-    .sn{font-size:11px;font-weight:bold;color:#1a3a5c}
-    .sm{font-size:9px;color:#888}
-    .sa{flex:1;display:flex;position:relative;min-height:40px}
-    .sl{flex:1;border-left:1px solid #eee;cursor:pointer;position:relative;min-width:0}
-    .sl.hf{border-left:1px dashed #f0f4f8}
-    .sl:hover{background:#eef6ff}
-    .bk{position:absolute;inset:2px;border-radius:4px;padding:1px 3px;font-size:9px;cursor:pointer;overflow:hidden}
-    .nl{position:absolute;top:0;bottom:0;width:2px;background:#e84040;z-index:9;pointer-events:none}
-    .nd{position:absolute;top:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:#e84040}
-    .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;align-items:center;justify-content:center;padding:16px}
-    .ov.on{display:flex}
-    .box{background:#fff;border-radius:12px;padding:16px;width:300px;max-width:100%;max-height:85vh;overflow-y:auto}
-    .bh{font-weight:bold;margin-bottom:12px;font-size:14px;color:#1a3a5c}
-    .tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
-    .tab{padding:5px 10px;border:1px solid #bbb;border-radius:6px;font-size:11px;cursor:pointer;background:#fff}
-    .tab.on{background:#1a5fa8;color:#fff;border-color:#1a5fa8}
-    .f{margin-bottom:8px}
-    .f label{display:block;font-size:11px;color:#888;margin-bottom:2px}
-    .f input,.f select{width:100%;border:1px solid #ccc;border-radius:6px;padding:5px 8px;font-size:12px}
-    .row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eee}
-    .row:last-child{border-bottom:none}
-    .cdot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
-    .br{display:flex;gap:6px;justify-content:flex-end;margin-top:12px}
-    .copts{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-    .copt{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent}
-    .copt.sel{border-color:#1a2a3a}
-    </style>
-  </head>
-  <body>
-    <div class="bar">
-      <div class="ti">✂ レッスン予約表</div>div>
-      <button class="btn" onclick="cd(-1)">◄</button>button>
-      <div class="dl" id="dl"></div>div>
-      <button class="btn" onclick="cd(1)">►</button>button>
-      <button class="btn" onclick="gt()">今日</button>button>
-      <button class="btn ac" onclick="showAdd(null,null)">＋予約</button>button>
-      <button class="btn" onclick="showSet()">設定</button>button>
-    </div>div>
-    <div class="sy" id="sy">読み込み中...</div>div>
-    <div class="gw"><div class="gi" id="gr"></div>div></div>div>
-    <div class="ov" id="ov" onclick="if(event.target===this)hd()"><div class="box" id="bx"></div>div></div>div>
-    <script>
-      var GAS_URL="https://script.google.com/macros/s/AKfycbyYKdJsrH43QlIIujIIEf-8xLZJtkWgZTYwcjz-pvQHcg5n50hVy8iKdVi66mcvL9cS/exec";
-      var WK=["日","月","火","水","木","金","土"];
-      var COLS=["#CECBF6","#9FE1CB","#F5C4B3","#F4C0D1","#FAC775","#B5D4F4","#C0DD97","#F7C1C1"];
-      var TCOLS=["#3C3489","#085041","#712B13","#72243E","#633806","#0C447C","#27500A","#791F1F"];
-      var D={bks:{},staff:[{id:"s1",n:"スタッフA",r:"スタイリスト",o:false},{id:"s2",n:"スタッフB",r:"スタイリスト",o:false},{id:"s3",n:"スタッフC",r:"アシスタント",o:false}],menus:[{n:"カット",c:0},{n:"カラー",c:1},{n:"パーマ",c:2},{n:"トリート",c:3},{n:"シャンプー",c:4}],ts:9,te:19};
-      var cur=new Date();var stab="staff";var nc=0;
-
-      function DK(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
-      function FD(d){return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+WK[d.getDay()]+"）";}
-      function HL(v){return Math.floor(v)+":"+(v%1?"30":"00");}
-      function SL(){var a=[];for(var h=D.ts;h<D.te;h++){a.push(h);a.push(h+0.5);}return a;}
-      function MC(n){var m=D.menus.find(function(x){return x.n===n;});return m?{b:COLS[m.c],t:TCOLS[m.c]}:{b:COLS[0],t:TCOLS[0]};}
-      function cd(n){cur=new Date(cur);cur.setDate(cur.getDate()+n);render();}
-      function gt(){cur=new Date();render();}
-      function hd(){document.getElementById("ov").className="ov";}
-      function NP(){var now=new Date();if(now.toDateString()!==cur.toDateString())return null;var tot=(D.te-D.ts)*60,el=(now.getHours()-D.ts)*60+now.getMinutes();if(el<0||el>tot)return null;return(el/tot)*100;}
-
-      function load(){
-        fetch(GAS_URL+"?action=load").then(function(r){return r.json();}).then(function(d){
-          if(d.bks)D.bks=d.bks;
-          if(d.staff&&d.staff.length)D.staff=d.staff;
-          if(d.menus&&d.menus.length)D.menus=d.menus;
-          if(d.ts!=null)D.ts=d.ts;
-          if(d.te!=null)D.te=d.te;
-          document.getElementById("sy").textContent="同期済み";render();
-        }).catch(function(){document.getElementById("sy").textContent="オフライン";render();});
-      }
-      function save(){
-        document.getElementById("sy").textContent="保存中...";
-        fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D))).then(function(){
-          document.getElementById("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
-        }).catch(function(){document.getElementById("sy").textContent="保存エラー";});
-      }
-
-      function render(){
-        document.getElementById("dl").textContent=FD(cur);
-        var sl=SL(),dk=DK(cur),db=D.bks[dk]||{},np=NP();
-        var h='<div class="gh"><div class="sc">スタッフ</div><div class="th">';
-        sl.forEach(function(v){h+='<div class="tc'+(v%1?' hf':'')+'">'+HL(v)+'</div>';});
-        h+='</div></div>';
-        D.staff.forEach(function(s){
-          h+='<div class="sr"><div class="si"><div class="sn">'+s.n+'</div><div class="sm">'+s.r+(s.o?' · 休':'')+'</div></div><div class="sa">';
-          if(s.o)h+='<div style="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999">休日</div>';
-          sl.forEach(function(v){
-            var k=s.id+"_"+v,bk=db[k],c=bk?MC(bk.m):null;
-            if(bk){h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" data-dk="'+dk+'" data-k="'+k+'" onclick="showDetEl(this)">'+(v%1?'':bk.n.substring(0,4))+'</div></div>';}
-            else if(s.o){h+='<div class="sl'+(v%1?' hf':'')+'" style="background:#e8edf2"></div>';}
-            else{h+='<div class="sl'+(v%1?' hf':'')+'" data-sid="'+s.id+'" data-v="'+v+'" onclick="showAddEl(this)"></div>';}
-          });
-          if(np!==null)h+='<div class="nl" style="left:'+np+'%"><div class="nd"></div></div>';
-          h+='</div></div>';
-        });
-        document.getElementById("gr").innerHTML=h;
-      }
-
-      function showDetEl(el){showDet(el.dataset.dk,el.dataset.k);}
-      function showAddEl(el){showAdd(el.dataset.sid,parseFloat(el.dataset.v));}
-
-      function showDet(dk,k){
-        var db=D.bks[dk]||{},bk=db[k];if(!bk)return;
-        var s=D.staff.find(function(x){return k.startsWith(x.id);});
-        var parts=k.split("_"),v=parseFloat(parts[parts.length-1]);
-        var h='<div class="bh">予約詳細</div>';
-        h+='<div class="f"><label>お客様名</label><div style="font-size:13px;font-weight:bold">'+bk.n+'</div></div>';
-        h+='<div class="f"><label>メニュー</label><div>'+bk.m+'</div></div>';
-        h+='<div class="f"><label>スタッフ</label><div>'+(s?s.n:'')+'</div></div>';
-        h+='<div class="f"><label>時間</label><div>'+HL(v)+'〜</div></div>';
-        if(bk.memo)h+='<div class="f"><label>メモ</label><div>'+bk.memo+'</div></div>';
-        h+='<div class="br">';
-        h+='<button class="btn red" onclick="delBk(\''+dk+'\',\''+k+'\')">削除</button>';
-        h+='<button class="btn" onclick="hd()">閉じる</button>';
-        h+='</div>';
-        document.getElementById("bx").innerHTML=h;
-        document.getElementById("ov").className="ov on";
-      }
-
-      function showAdd(sid,v){
-        var sl=SL();
-        var h='<div class="bh">予約追加</div>';
-        h+='<div class="f"><label>お客様名</label><input id="fn" placeholder="お名前"></div>';
-        h+='<div class="f"><label>メニュー</label><select id="fm"><option value="">選択...</option>';
-        D.menus.forEach(function(m){h+='<option>'+m.n+'</option>';});
-        h+='</select></div>';
-        h+='<div class="f"><label>スタッフ</label><select id="fs">';
-        D.staff.filter(function(s){return !s.o;}).forEach(function(s){h+='<option value="'+s.id+'"'+(s.id===sid?' selected':'')+'>'+s.n+'</option>';});
-        h+='</select></div>';
-        h+='<div class="f"><label>時間</label><select id="fv">';
-        sl.forEach(function(t){h+='<option value="'+t+'"'+(t===v?' selected':'')+'>'+HL(t)+'</option>';});
-        h+='</select></div>';
-        h+='<div class="f"><label>日付</label><input type="date" id="fd" value="'+DK(cur)+'"></div>';
-        h+='<div class="f"><label>メモ</label><input id="fmm" placeholder="任意"></div>';
-        h+='<div class="br"><button class="btn" onclick="hd()">キャンセル</button><button class="btn ac" onclick="addBk()">追加</button></div>';
-        document.getElementById("bx").innerHTML=h;
-        document.getElementById("ov").className="ov on";
-      }
-
-      function addBk(){
-        var n=document.getElementById("fn").value.trim();
-        var m=document.getElementById("fm").value;
-        var sid=document.getElementById("fs").value;
-        var v=parseFloat(document.getElementById("fv").value);
-        var fd=document.getElementById("fd").value;
-        var memo=document.getElementById("fmm").value.trim();
-        if(!n||!m||!sid)return alert("お名前・メニュー・スタッフを入力してください");
-        var dk=fd;
-        if(!D.bks[dk])D.bks[dk]={};
-        var k=sid+"_"+v;
-        D.bks[dk][k]={n:n,m:m,memo:memo};
-        hd();render();save();
-      }
-
-      function delBk(dk,k){
-        if(!confirm("削除しますか？"))return;
-        if(D.bks[dk])delete D.bks[dk][k];
-        hd();render();save();
-      }
-
-      function showSet(){
-        var h='<div class="bh">設定</div>';
-        h+='<div class="tabs">';
-        ["staff","menu","time"].forEach(function(t){h+='<div class="tab'+(stab===t?' on':'')+'" onclick="stTab(\''+t+'\')">'+{staff:"スタッフ",menu:"メニュー",time:"時間"}[t]+'</div>';});
-        h+='</div><div id="stcont"></div>';
-        document.getElementById("bx").innerHTML=h;
-        document.getElementById("ov").className="ov on";
-        stTab(stab);
-      }
-
-      function stTab(t){
-        stab=t;
-        document.querySelectorAll(".tab").forEach(function(el){el.className="tab"+(el.textContent==={staff:"スタッフ",menu:"メニュー",time:"時間"}[t]?' on':'');});
-        var h="";
-        if(t==="staff"){
-          D.staff.forEach(function(s,i){
-            h+='<div class="row"><div class="cdot" style="background:'+COLS[i%COLS.length]+'"></div>';
-            h+='<input value="'+s.n+'" onchange="D.staff['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
-            h+='<input value="'+s.r+'" onchange="D.staff['+i+'].r=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
-            h+='<input type="checkbox"'+(s.o?' checked':'')+' onchange="D.staff['+i+'].o=this.checked" title="休日">';
-            h+='<button class="btn red" onclick="D.staff.splice('+i+',1);stTab(\'staff\')">✕</button></div>';
-          });
-          h+='<button class="btn" style="margin-top:8px" onclick="D.staff.push({id:\'s\'+(Date.now()),n:\'新スタッフ\',r:\'\',o:false});stTab(\'staff\')">＋追加</button>';
-        }else if(t==="menu"){
-          D.menus.forEach(function(m,i){
-            h+='<div class="row"><input value="'+m.n+'" onchange="D.menus['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
-            h+='<div class="copts">';
-            COLS.forEach(function(c,ci){h+='<div class="copt'+(m.c===ci?' sel':'')+'" style="background:'+c+'" onclick="D.menus['+i+'].c='+ci+';stTab(\'menu\')"></div>';});
-            h+='</div><button class="btn red" onclick="D.menus.splice('+i+',1);stTab(\'menu\')">✕</button></div>';
-          });
-          h+='<button class="btn" style="margin-top:8px" onclick="D.menus.push({n:\'新メニュー\',c:0});stTab(\'menu\')">＋追加</button>';
-        }else{
-          h+='<div class="f"><label>開始時間</label><select id="sts">';
-          for(var i=6;i<=12;i++)h+='<option value="'+i+'"'+(D.ts===i?' selected':'')+'>'+i+'時</option>';
-          h+='</select></div>';
-          h+='<div class="f"><label>終了時間</label><select id="ste">';
-          for(var i=17;i<=23;i++)h+='<option value="'+i+'"'+(D.te===i?' selected':'')+'>'+i+'時</option>';
-          h+='</select></div>';
-          h+='<button class="btn ac" style="margin-top:8px" onclick="D.ts=parseInt(document.getElementById(\'sts\').value);D.te=parseInt(document.getElementById(\'ste\').value);render()">適用</button>';
-        }
-        document.getElementById("stcont").innerHTML=h;
-      }
-
-      function svSet(){hd();render();save();}
-      load();
-    </script>
-  </body>
-</html>
-    </script>
-  </body>
-  </style></title>
-  </head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>レッスン予約表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
+.bar{background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid #ddd}
+.ti{font-weight:bold;flex:1;color:#1a3a5c;font-size:14px}
+.dl{font-size:12px;font-weight:bold;color:#1a3a5c;min-width:130px;text-align:center}
+.btn{border:1px solid #bbb;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:#fff}
+.btn.ac{background:#1a5fa8;color:#fff;border-color:#1a5fa8}
+.btn.red{color:#a32d2d}
+.sy{font-size:11px;color:#888;margin-bottom:6px}
+.gw{overflow-x:auto;border:1px solid #ddd;border-radius:10px;background:#fff}
+.gi{min-width:600px}
+.gh{display:flex;background:#f0f4f8;border-bottom:1px solid #ddd;border-radius:10px 10px 0 0}
+.sc{width:95px;min-width:95px;padding:5px 6px;font-size:10px;color:#888;border-right:1px solid #ddd}
+.th{flex:1;display:flex}
+.tc{flex:1;text-align:center;padding:4px 0;font-size:9px;color:#666;border-left:1px solid #e8f0f8;min-width:0}
+.tc.hf{color:#bbb}
+.sr{display:flex;border-bottom:1px solid #eee}
+.sr:last-child{border-bottom:none}
+.si{width:95px;min-width:95px;padding:4px 6px;border-right:1px solid #ddd;background:#f7fafd}
+.sn{font-size:11px;font-weight:bold;color:#1a3a5c}
+.sm{font-size:9px;color:#888}
+.sa{flex:1;display:flex;position:relative;min-height:40px}
+.sl{flex:1;border-left:1px solid #eee;cursor:pointer;position:relative;min-width:0}
+.sl.hf{border-left:1px dashed #f0f4f8}
+.sl:hover{background:#eef6ff}
+.bk{position:absolute;inset:2px;border-radius:4px;padding:1px 3px;font-size:9px;cursor:pointer;overflow:hidden}
+.nl{position:absolute;top:0;bottom:0;width:2px;background:#e84040;z-index:9;pointer-events:none}
+.nd{position:absolute;top:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:#e84040}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.box{background:#fff;border-radius:12px;padding:16px;width:300px;max-width:100%;max-height:85vh;overflow-y:auto}
+.bh{font-weight:bold;margin-bottom:12px;font-size:14px;color:#1a3a5c}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:5px 10px;border:1px solid #bbb;border-radius:6px;font-size:11px;cursor:pointer;background:#fff}
+.tab.on{background:#1a5fa8;color:#fff;border-color:#1a5fa8}
+.f{margin-bottom:8px}
+.f label{display:block;font-size:11px;color:#888;margin-bottom:2px}
+.f input,.f select{width:100%;border:1px solid #ccc;border-radius:6px;padding:5px 8px;font-size:12px}
+.row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:none}
+.cdot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.br{display:flex;gap:6px;justify-content:flex-end;margin-top:12px}
+.copts{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.copt{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.copt.sel{border-color:#1a2a3a}
+</style>
+</head>
+<body>
+<div class="bar">
+<div class="ti">✂ レッスン予約表</div>
+<button class="btn" onclick="cd(-1)">◄</button>
+<div class="dl" id="dl"></div>
+<button class="btn" onclick="cd(1)">►</button>
+<button class="btn" onclick="gt()">今日</button>
+<button class="btn ac" onclick="showAdd(null,null)">＋予約</button>
+<button class="btn" onclick="showSet()">設定</button>
+</div>
+<div class="sy" id="sy">読み込み中...</div>
+<div class="gw"><div class="gi" id="gr"></div></div>
+<div class="ov" id="ov" onclick="if(event.target===this)hd()"><div class="box" id="bx"></div></div>
+<script>
+var GAS_URL="https://script.google.com/macros/s/AKfycbyYKdJsrH43QlIIujIIEf-8xLZJtkWgZTYwcjz-pvQHcg5n50hVy8iKdVi66mcvL9cS/exec";
+var WK=["日","月","火","水","木","金","土"];
+var COLS=["#CECBF6","#9FE1CB","#F5C4B3","#F4C0D1","#FAC775","#B5D4F4","#C0DD97","#F7C1C1"];
+var TCOLS=["#3C3489","#085041","#712B13","#72243E","#633806","#0C447C","#27500A","#791F1F"];
+var D={bks:{},staff:[{id:"s1",n:"スタッフA",r:"スタイリスト",o:false},{id:"s2",n:"スタッフB",r:"スタイリスト",o:false},{id:"s3",n:"スタッフC",r:"アシスタント",o:false}],menus:[{n:"カット",c:0},{n:"カラー",c:1},{n:"パーマ",c:2},{n:"トリート",c:3},{n:"シャンプー",c:4}],ts:9,te:19};
+var cur=new Date();var stab="staff";var nc=0;
+function DK(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function FD(d){return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+WK[d.getDay()]+"）";}
+function HL(v){return Math.floor(v)+":"+(v%1?"30":"00");}
+function SL(){var a=[];for(var h=D.ts;h<D.te;h++){a.push(h);a.push(h+0.5);}return a;}
+function MC(n){var m=D.menus.find(function(x){return x.n===n;});return m?{b:COLS[m.c],t:TCOLS[m.c]}:{b:COLS[0],t:TCOLS[0]};}
+function cd(n){cur=new Date(cur);cur.setDate(cur.getDate()+n);render();}
+function gt(){cur=new Date();render();}
+function hd(){document.getElementById("ov").className="ov";}
+function NP(){var now=new Date();if(now.toDateString()!==cur.toDateString())return null;var tot=(D.te-D.ts)*60,el=(now.getHours()-D.ts)*60+now.getMinutes();if(el<0||el>tot)return null;return(el/tot)*100;}
+function load(){
+fetch(GAS_URL+"?action=load").then(function(r){return r.json();}).then(function(d){
+if(d.bks)D.bks=d.bks;
+if(d.staff&&d.staff.length)D.staff=d.staff;
+if(d.menus&&d.menus.length)D.menus=d.menus;
+if(d.ts!=null)D.ts=d.ts;
+if(d.te!=null)D.te=d.te;
+document.getElementById("sy").textContent="同期済み";render();
+}).catch(function(){document.getElementById("sy").textContent="オフライン";render();});
+}
+function save(){
+document.getElementById("sy").textContent="保存中...";
+fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D))).then(function(){
+document.getElementById("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+}).catch(function(){document.getElementById("sy").textContent="保存エラー";});
+}
+function render(){
+document.getElementById("dl").textContent=FD(cur);
+var sl=SL(),dk=DK(cur),db=D.bks[dk]||{},np=NP();
+var h='<div class="gh"><div class="sc">スタッフ</div><div class="th">';
+sl.forEach(function(v){h+='<div class="tc'+(v%1?' hf':'')+'">'+HL(v)+'</div>';});
+h+='</div></div>';
+D.staff.forEach(function(s){
+h+='<div class="sr"><div class="si"><div class="sn">'+s.n+'</div><div class="sm">'+s.r+(s.o?' · 休':'')+'</div></div><div class="sa">';
+if(s.o)h+='<div style="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999">休日</div>';
+sl.forEach(function(v){
+var k=s.id+"_"+v,bk=db[k],c=bk?MC(bk.m):null;
+if(bk){h+='<div class="sl'+(v%1?' hf':'')+'"><div class="bk" style="background:'+c.b+';color:'+c.t+'" data-dk="'+dk+'" data-k="'+k+'" onclick="showDetEl(this)">'+(v%1?'':bk.n.substring(0,4))+'</div></div>';}
+else if(s.o){h+='<div class="sl'+(v%1?' hf':'')+'" style="background:#e8edf2"></div>';}
+else{h+='<div class="sl'+(v%1?' hf':'')+'" data-sid="'+s.id+'" data-v="'+v+'" onclick="showAddEl(this)"></div>';}
+});
+if(np!==null)h+='<div class="nl" style="left:'+np+'%"><div class="nd"></div></div>';
+h+='</div></div>';
+});
+document.getElementById("gr").innerHTML=h;
+}
+function showDetEl(el){showDet(el.dataset.dk,el.dataset.k);}
+function showAddEl(el){showAdd(el.dataset.sid,parseFloat(el.dataset.v));}
+function showDet(dk,k){
+var db=D.bks[dk]||{},bk=db[k];if(!bk)return;
+var s=D.staff.find(function(x){return k.startsWith(x.id);});
+var parts=k.split("_"),v=parseFloat(parts[parts.length-1]);
+var h='<div class="bh">予約詳細</div>';
+h+='<div class="f"><label>お客様名</label><div style="font-size:13px;font-weight:bold">'+bk.n+'</div></div>';
+h+='<div class="f"><label>メニュー</label><div>'+bk.m+'</div></div>';
+h+='<div class="f"><label>スタッフ</label><div>'+(s?s.n:'')+'</div></div>';
+h+='<div class="f"><label>時間</label><div>'+HL(v)+'〜</div></div>';
+if(bk.memo)h+='<div class="f"><label>メモ</label><div>'+bk.memo+'</div></div>';
+h+='<div class="br">';
+h+='<button class="btn red" onclick="delBk(''+dk+'',''+k+'')">削除</button>';
+h+='<button class="btn" onclick="hd()">閉じる</button>';
+h+='</div>';
+document.getElementById("bx").innerHTML=h;
+document.getElementById("ov").className="ov on";
+}
+function showAdd(sid,v){
+var sl=SL();
+var h='<div class="bh">予約追加</div>';
+h+='<div class="f"><label>お客様名</label><input id="fn" placeholder="お名前"></div>';
+h+='<div class="f"><label>メニュー</label><select id="fm"><option value="">選択...</option>';
+D.menus.forEach(function(m){h+='<option>'+m.n+'</option>';});
+h+='</select></div>';
+h+='<div class="f"><label>スタッフ</label><select id="fs">';
+D.staff.filter(function(s){return !s.o;}).forEach(function(s){h+='<option value="'+s.id+'"'+(s.id===sid?' selected':'')+'>'+s.n+'</option>';});
+h+='</select></div>';
+h+='<div class="f"><label>時間</label><select id="fv">';
+sl.forEach(function(t){h+='<option value="'+t+'"'+(t===v?' selected':'')+'>'+HL(t)+'</option>';});
+h+='</select></div>';
+h+='<div class="f"><label>日付</label><input type="date" id="fd" value="'+DK(cur)+'"></div>';
+h+='<div class="f"><label>メモ</label><input id="fmm" placeholder="任意"></div>';
+h+='<div class="br"><button class="btn" onclick="hd()">キャンセル</button><button class="btn ac" onclick="addBk()">追加</button></div>';
+document.getElementById("bx").innerHTML=h;
+document.getElementById("ov").className="ov on";
+}
+function addBk(){
+var n=document.getElementById("fn").value.trim();
+var m=document.getElementById("fm").value;
+var sid=document.getElementById("fs").value;
+var v=parseFloat(document.getElementById("fv").value);
+var fd=document.getElementById("fd").value;
+var memo=document.getElementById("fmm").value.trim();
+if(!n||!m||!sid)return alert("お名前・メニュー・スタッフを入力してください");
+var dk=fd;
+if(!D.bks[dk])D.bks[dk]={};
+var k=sid+"_"+v;
+D.bks[dk][k]={n:n,m:m,memo:memo};
+hd();render();save();
+}
+function delBk(dk,k){
+if(!confirm("削除しますか？"))return;
+if(D.bks[dk])delete D.bks[dk][k];
+hd();render();save();
+}
+function showSet(){
+var h='<div class="bh">設定</div>';
+h+='<div class="tabs">';
+["staff","menu","time"].forEach(function(t){h+='<div class="tab'+(stab===t?' on':'')+'" onclick="stTab(''+t+'')">'+{staff:"スタッフ",menu:"メニュー",time:"時間"}[t]+'</div>';});
+h+='</div><div id="stcont"></div>';
+document.getElementById("bx").innerHTML=h;
+document.getElementById("ov").className="ov on";
+stTab(stab);
+}
+function stTab(t){
+stab=t;
+document.querySelectorAll(".tab").forEach(function(el){el.className="tab"+(el.textContent==={staff:"スタッフ",menu:"メニュー",time:"時間"}[t]?' on':'');});
+var h="";
+if(t==="staff"){
+D.staff.forEach(function(s,i){
+h+='<div class="row"><div class="cdot" style="background:'+COLS[i%COLS.length]+'"></div>';
+h+='<input value="'+s.n+'" onchange="D.staff['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
+h+='<input value="'+s.r+'" onchange="D.staff['+i+'].r=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
+h+='<input type="checkbox"'+(s.o?' checked':'')+' onchange="D.staff['+i+'].o=this.checked" title="休日">';
+h+='<button class="btn red" onclick="D.staff.splice('+i+',1);stTab('staff')">✕</button></div>';
+});
+h+='<button class="btn" style="margin-top:8px" onclick="D.staff.push({id:'s'+(Date.now()),n:'新スタッフ',r:'',o:false});stTab('staff')">＋追加</button>';
+}else if(t==="menu"){
+D.menus.forEach(function(m,i){
+h+='<div class="row"><input value="'+m.n+'" onchange="D.menus['+i+'].n=this.value" style="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px">';
+h+='<div class="copts">';
+COLS.forEach(function(c,ci){h+='<div class="copt'+(m.c===ci?' sel':'')+'" style="background:'+c+'" onclick="D.menus['+i+'].c='+ci+';stTab('menu')"></div>';});
+h+='</div><button class="btn red" onclick="D.menus.splice('+i+',1);stTab('menu')">✕</button></div>';
+});
+h+='<button class="btn" style="margin-top:8px" onclick="D.menus.push({n:'新メニュー',c:0});stTab('menu')">＋追加</button>';
+}else{
+h+='<div class="f"><label>開始時間</label><select id="sts">';
+for(var i=6;i<=12;i++)h+='<option value="'+i+'"'+(D.ts===i?' selected':'')+'>'+i+'時</option>';
+h+='</select></div>';
+h+='<div class="f"><label>終了時間</label><select id="ste">';
+for(var i=17;i<=23;i++)h+='<option value="'+i+'"'+(D.te===i?' selected':'')+'>'+i+'時</option>';
+h+='</select></div>';
+h+='<button class="btn ac" style="margin-top:8px" onclick="D.ts=parseInt(document.getElementById('sts').value);D.te=parseInt(document.getElementById('ste').value);render()">適用</button>';
+}
+document.getElementById("stcont").innerHTML=h;
+}
+function svSet(){hd();render();save();}
+load();
+</script>
+</body>
 </html>
