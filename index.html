@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>レッスン予約表</title>
+<title>ã¬ãã¹ã³äºç´è¡¨</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
@@ -31,11 +31,12 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 .sl.hf{border-left:1px dashed #f0f4f8}
 .sl:hover{background:#eef6ff}
 .bk{position:absolute;inset:2px;border-radius:4px;padding:1px 3px;font-size:9px;cursor:pointer;overflow:hidden}
+.bk.rest{background:#e8edf2!important;color:#999!important;font-style:italic}
 .nl{position:absolute;top:0;bottom:0;width:2px;background:#e84040;z-index:9;pointer-events:none}
 .nd{position:absolute;top:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:#e84040}
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;align-items:center;justify-content:center;padding:16px}
 .ov.on{display:flex}
-.box{background:#fff;border-radius:12px;padding:16px;width:300px;max-width:100%;max-height:85vh;overflow-y:auto}
+.box{background:#fff;border-radius:12px;padding:16px;width:320px;max-width:100%;max-height:85vh;overflow-y:auto}
 .bh{font-weight:bold;margin-bottom:12px;font-size:14px;color:#1a3a5c}
 .tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
 .tab{padding:5px 10px;border:1px solid #bbb;border-radius:6px;font-size:11px;cursor:pointer;background:#fff}
@@ -54,44 +55,48 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 </head>
 <body>
 <div class="bar">
-  <div class="ti">✂ レッスン予約表</div>
-  <button class="btn" onclick="cd(-1)">◄</button>
+  <div class="ti">â ã¬ãã¹ã³äºç´è¡¨</div>
+  <button class="btn" onclick="cd(-1)">â</button>
   <div class="dl" id="dl"></div>
-  <button class="btn" onclick="cd(1)">►</button>
-  <button class="btn" onclick="gt()">今日</button>
-  <button class="btn ac" onclick="showAdd(null,null)">＋予約</button>
-  <button class="btn" onclick="showSet()">設定</button>
+  <button class="btn" onclick="cd(1)">âº</button>
+  <button class="btn" onclick="gt()">ä»æ¥</button>
+  <button class="btn ac" onclick="showAdd(null,null)">ï¼äºç´</button>
+  <button class="btn" onclick="showSet()">è¨­å®</button>
 </div>
-<div class="sy" id="sy">読み込み中...</div>
+<div class="sy" id="sy">èª­ã¿è¾¼ã¿ä¸­...</div>
 <div class="gw"><div class="gi" id="gr"></div></div>
 <div class="ov" id="ov" onclick="if(event.target===this)hd()"><div class="box" id="bx"></div></div>
 
 <script>
 var GAS_URL = "https://script.google.com/macros/s/AKfycbyYKdJsrH43QlIIujIIEf-8xLZJtkWgZTYwcjz-pvQHcg5n50hVy8iKdVi66mcvL9cS/exec";
-var WK = ["日","月","火","水","木","金","土"];
+var WK = ["æ¥","æ","ç«","æ°´","æ¨","é","å"];
 var COLS  = ["#CECBF6","#9FE1CB","#F5C4B3","#F4C0D1","#FAC775","#B5D4F4","#C0DD97","#F7C1C1"];
 var TCOLS = ["#3C3489","#085041","#712B13","#72243E","#633806","#0C447C","#27500A","#791F1F"];
 var D = {
   bks: {},
   staff: [
-    {id:"s1",n:"スタッフA",r:"スタイリスト",o:false},
-    {id:"s2",n:"スタッフB",r:"スタイリスト",o:false},
-    {id:"s3",n:"スタッフC",r:"アシスタント",o:false}
+    {id:"s1",n:"ã¹ã¿ããA",r:"ã¹ã¿ã¤ãªã¹ã",o:false},
+    {id:"s2",n:"ã¹ã¿ããB",r:"ã¹ã¿ã¤ãªã¹ã",o:false},
+    {id:"s3",n:"ã¹ã¿ããC",r:"ã¢ã·ã¹ã¿ã³ã",o:false}
   ],
   menus: [
-    {n:"カット",c:0},{n:"カラー",c:1},{n:"パーマ",c:2},{n:"トリート",c:3},{n:"シャンプー",c:4}
+    {n:"ã«ãã",c:0,t:30},
+    {n:"ã«ã©ã¼",c:1,t:60},
+    {n:"ãã¼ã",c:2,t:90},
+    {n:"ããªã¼ã",c:3,t:30},
+    {n:"ã·ã£ã³ãã¼",c:4,t:30}
   ],
   ts: 9, te: 19
 };
 var cur = new Date();
 var stab = "staff";
 
-/* ---- ユーティリティ ---- */
 function DK(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
-function FD(d){ return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日（"+WK[d.getDay()]+"）"; }
+function FD(d){ return d.getFullYear()+"å¹´"+(d.getMonth()+1)+"æ"+d.getDate()+"æ¥ï¼"+WK[d.getDay()]+"ï¼"; }
 function HL(v){ return Math.floor(v)+":"+(v%1?"30":"00"); }
 function SL(){ var a=[]; for(var h=D.ts;h<D.te;h++){a.push(h);a.push(h+0.5);} return a; }
 function MC(n){ var m=D.menus.find(function(x){return x.n===n;}); return m?{b:COLS[m.c],t:TCOLS[m.c]}:{b:COLS[0],t:TCOLS[0]}; }
+function MT(n){ var m=D.menus.find(function(x){return x.n===n;}); return m?m.t:30; }
 function el(id){ return document.getElementById(id); }
 function mk(tag,attrs,text){
   var e = document.createElement(tag);
@@ -111,7 +116,6 @@ function NP(){
   return (e/tot)*100;
 }
 
-/* ---- データ通信 ---- */
 function load(){
   fetch(GAS_URL+"?action=load")
     .then(function(r){return r.json();})
@@ -121,27 +125,25 @@ function load(){
       if(d.menus&&d.menus.length) D.menus=d.menus;
       if(d.ts!=null) D.ts=d.ts;
       if(d.te!=null) D.te=d.te;
-      el("sy").textContent="同期済み"; render();
+      el("sy").textContent="åææ¸ã¿"; render();
     })
-    .catch(function(){ el("sy").textContent="オフライン"; render(); });
+    .catch(function(){ el("sy").textContent="ãªãã©ã¤ã³"; render(); });
 }
 function save(){
-  el("sy").textContent="保存中...";
+  el("sy").textContent="ä¿å­ä¸­...";
   fetch(GAS_URL+"?action=save&data="+encodeURIComponent(JSON.stringify(D)))
-    .then(function(){ el("sy").textContent="保存完了 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}); })
-    .catch(function(){ el("sy").textContent="保存エラー"; });
+    .then(function(){ el("sy").textContent="ä¿å­å®äº "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}); })
+    .catch(function(){ el("sy").textContent="ä¿å­ã¨ã©ã¼"; });
 }
 
-/* ---- 描画（DOM操作で引用符問題を完全回避） ---- */
 function render(){
   el("dl").textContent = FD(cur);
   var sl=SL(), dk=DK(cur), db=D.bks[dk]||{}, np=NP();
   var grid = el("gr");
   grid.innerHTML = "";
 
-  /* ヘッダー行 */
   var gh = mk("div",{class:"gh"});
-  gh.appendChild(mk("div",{class:"sc"},"スタッフ"));
+  gh.appendChild(mk("div",{class:"sc"},"ã¹ã¿ãã"));
   var th = mk("div",{class:"th"});
   sl.forEach(function(v){
     th.appendChild(mk("div",{class:"tc"+(v%1?" hf":"")},HL(v)));
@@ -149,17 +151,16 @@ function render(){
   gh.appendChild(th);
   grid.appendChild(gh);
 
-  /* スタッフ行 */
   D.staff.forEach(function(s){
     var sr = mk("div",{class:"sr"});
     var si = mk("div",{class:"si"});
     si.appendChild(mk("div",{class:"sn"},s.n));
-    si.appendChild(mk("div",{class:"sm"},s.r+(s.o?" · 休":"")));
+    si.appendChild(mk("div",{class:"sm"},s.r+(s.o?" Â· ä¼":"")));
     sr.appendChild(si);
 
     var sa = mk("div",{class:"sa"});
     if(s.o){
-      var off = mk("div",{},"休日");
+      var off = mk("div",{},"ä¼æ¥");
       off.style.cssText="position:absolute;inset:0;background:#e8edf2;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#999";
       sa.appendChild(off);
     }
@@ -169,11 +170,12 @@ function render(){
       var bk = db[k];
       var slDiv = mk("div",{class:"sl"+(v%1?" hf":"")});
       if(bk){
-        var c = MC(bk.m);
-        var bkDiv = mk("div",{class:"bk"},v%1?"":( (bk.n||"").substring(0,4) ));
+        var isRest = (bk.m === "__rest__");
+        var c = isRest ? {b:"#e8edf2",t:"#999"} : MC(bk.m);
+        var label = isRest ? "ä¼æ©" : (v%1?"":( (bk.n||"").substring(0,4) ));
+        var bkDiv = mk("div",{class:"bk"+(isRest?" rest":"")},label);
         bkDiv.style.background = c.b;
         bkDiv.style.color = c.t;
-        /* クロージャで dk,k を安全にキャプチャ */
         (function(dk2,k2){
           bkDiv.addEventListener("click", function(){ showDet(dk2,k2); });
         })(dk,k);
@@ -188,7 +190,6 @@ function render(){
       sa.appendChild(slDiv);
     });
 
-    /* 現在時刻ライン */
     if(np!==null){
       var nl = mk("div",{class:"nl"});
       nl.style.left=np+"%";
@@ -200,43 +201,40 @@ function render(){
   });
 }
 
-/* ---- モーダル ---- */
 function showDet(dk,k){
   var db=D.bks[dk]||{}, bk=db[k]; if(!bk) return;
+  var isRest = (bk.m === "__rest__");
   var s=D.staff.find(function(x){return k.startsWith(x.id);});
   var parts=k.split("_"), v=parseFloat(parts[parts.length-1]);
   var box = el("bx");
   box.innerHTML="";
-
-  box.appendChild(mk("div",{class:"bh"},"予約詳細"));
-
+  box.appendChild(mk("div",{class:"bh"},isRest?"ä¼æ©è©³ç´°":"äºç´è©³ç´°"));
   function row(label,val){
     var f=mk("div",{class:"f"});
     f.appendChild(mk("label",{},label));
     var d=mk("div",{},val);
-    if(label==="お客様名") d.style.cssText="font-size:13px;font-weight:bold";
+    if(label==="ãå®¢çå") d.style.cssText="font-size:13px;font-weight:bold";
     f.appendChild(d);
     box.appendChild(f);
   }
-  row("お客様名", bk.n);
-  row("メニュー",  bk.m);
-  row("スタッフ",  s?s.n:"");
-  row("時間",      HL(v)+"〜");
-  if(bk.memo) row("メモ", bk.memo);
-
+  if(isRest){
+    row("ç¨®å¥","ä¼æ©"); row("ã¹ã¿ãã",s?s.n:""); row("æé",HL(v)+"ã");
+  } else {
+    row("ãå®¢æ§å",bk.n); row("ã¡ãã¥ã¼",bk.m); row("æè¦æé",MT(bk.m)+"å"); row("ã¹ã¿ãã",s?s.n:""); row("æé",HL(v)+"ã");
+    if(bk.memo) row("ã¡ã¢",bk.memo);
+  }
   var br = mk("div",{class:"br"});
-  var delBtn = mk("button",{class:"btn red"},"削除");
+  var delBtn = mk("button",{class:"btn red"},"åé");
   delBtn.addEventListener("click", function(){
-    if(!confirm("削除しますか？")) return;
+    if(!confirm("åéãã¾ããï¼")) return;
     if(D.bks[dk]) delete D.bks[dk][k];
     hd(); render(); save();
   });
   br.appendChild(delBtn);
-  var closeBtn = mk("button",{class:"btn"},"閉じる");
+  var closeBtn = mk("button",{class:"btn"},"éãã");
   closeBtn.addEventListener("click", hd);
   br.appendChild(closeBtn);
   box.appendChild(br);
-
   el("ov").className="ov on";
 }
 
@@ -244,183 +242,130 @@ function showAdd(sid,v){
   var sl=SL();
   var box=el("bx");
   box.innerHTML="";
-  box.appendChild(mk("div",{class:"bh"},"予約追加"));
-
-  function field(label,child){
-    var f=mk("div",{class:"f"});
-    f.appendChild(mk("label",{},label));
-    f.appendChild(child);
-    box.appendChild(f);
+  box.appendChild(mk("div",{class:"bh"},"è¿½å "));
+  var mTabs = mk("div",{class:"tabs"});
+  var tabY = mk("div",{class:"tab on"},"äºç´");
+  var tabK = mk("div",{class:"tab"},"ä¼æ©");
+  mTabs.appendChild(tabY); mTabs.appendChild(tabK); box.appendChild(mTabs);
+  var fArea = mk("div",{}); box.appendChild(fArea);
+  function build(mode){
+    fArea.innerHTML="";
+    function ff(lab,ch){ var x=mk("div",{class:"f"}); x.appendChild(mk("label",{},lab)); x.appendChild(ch); fArea.appendChild(x); }
+    if(mode=="y"){
+      var fn=mk("input",{id:"fn",placeholder:"ãåè±"}); ff("ãå®¢çå",fn);
+      var fm=mk("select",{id:"fm"});
+      D.menus.forEach(function(m){ fm.appendChild(mk("option",{value:m.n},m.n+"("+m.t+"å)")); });
+      ff("ã¡ãã¥ã¼",fm);
+    }
+    var fs=mk("select",{id:"fs"});
+    D.staff.filter(function(s){return !s.o;}).forEach(function(s){ var o=mk("option",{value:s.id},s.n); if(s.id===sid) o.selected=true; fs.appendChild(o); });
+    ff("ã¹ã¿ãã",fs);
+    var fv=mk("select",{id:"fv"});
+    sl.forEach(function(t){ var o=mk("option",{value:String(t)},HL(t)); if(t===v) o.selected=true; fv.appendChild(o); });
+    ff("æé",fv);
+    var fd=mk("input",{id:"fd",type:"date",value:DK(cur)}); ff("æ¥ä»",fd);
+    if(mode=="y"){ var fmm=mk("input",{id:"fmm",placeholder:"ä»·å"}); ff("ã¡ã¢",fmm); }
+    var br=mk("div",{class:"br"});
+    var cb=mk("button",{class:"btn"},"ã­ã£ã³ã¹ã»"); cb.addEventListener("click"hd); br.appendChild(cb);
+    var ab=mk("button",{class:"btn ac"},mode=="y"?"äºç´è¿½å " :"ä¼æ©âÿ½¥ ");
+    ab.addEventListener("click",function(){
+      var s2=el("fs").value; var v2=parseFloat(el("fv").value); var d2=el("fd").value;
+      if(!s2){ alert("ã¹ã¿ãããé¸æãã¦ãã ãã"); return; }
+      if(!D.bks[d2]) D.bks[d2]={};
+      var k=s2+"_"+v2;
+      if(mode=="y"){
+        var n=el("fn").value.trim(); var m=el("fm").value;
+        var mm=el("fmm")?el("fmm").value.trim():"";
+        if(!n||!m){ alert("ãååã¨ã¡ãã¥ã¼ãå¥åãã¦ãã ãã"); return; }
+        D.bks[d2][k]={n:n,m:m,memo:mm};
+      } else { D.bks[d2][k]={n:"ä¼æ©",m:"__rest__",memo:""}; }
+      hd(); render(); save();
+    });
+    br.appendChild(ab); fArea.appendChild(br);
   }
-
-  var fn=mk("input",{id:"fn",placeholder:"お名前"});
-  field("お客様名",fn);
-
-  var fm=mk("select",{id:"fm"});
-  fm.appendChild(mk("option",{value:""},"選択..."));
-  D.menus.forEach(function(m){ fm.appendChild(mk("option",{},m.n)); });
-  field("メニュー",fm);
-
-  var fs=mk("select",{id:"fs"});
-  D.staff.filter(function(s){return !s.o;}).forEach(function(s){
-    var o=mk("option",{value:s.id},s.n);
-    if(s.id===sid) o.selected=true;
-    fs.appendChild(o);
-  });
-  field("スタッフ",fs);
-
-  var fv=mk("select",{id:"fv"});
-  sl.forEach(function(t){
-    var o=mk("option",{value:String(t)},HL(t));
-    if(t===v) o.selected=true;
-    fv.appendChild(o);
-  });
-  field("時間",fv);
-
-  var fd=mk("input",{id:"fd",type:"date",value:DK(cur)});
-  field("日付",fd);
-
-  var fmm=mk("input",{id:"fmm",placeholder:"任意"});
-  field("メモ",fmm);
-
-  var br=mk("div",{class:"br"});
-  var cancelBtn=mk("button",{class:"btn"},"キャンセル");
-  cancelBtn.addEventListener("click",hd);
-  br.appendChild(cancelBtn);
-  var addBtn=mk("button",{class:"btn ac"},"追加");
-  addBtn.addEventListener("click",function(){
-    var n=el("fn").value.trim();
-    var m=el("fm").value;
-    var sid2=el("fs").value;
-    var v2=parseFloat(el("fv").value);
-    var fd2=el("fd").value;
-    var memo=el("fmm").value.trim();
-    if(!n||!m||!sid2){ alert("お名前・メニュー・スタッフを入力してください"); return; }
-    if(!D.bks[fd2]) D.bks[fd2]={};
-    D.bks[fd2][sid2+"_"+v2]={n:n,m:m,memo:memo};
-    hd(); render(); save();
-  });
-  br.appendChild(addBtn);
-  box.appendChild(br);
-
+  build("y");
+  tabY.addEventListener("click",function(){ tabY.className="tab on"; tabK.className="tab"; build("y"); });
+  tabK.addEventListener("click",function(){ tabK.className="tab on"; tabY.className="tab"; build("k"); });
   el("ov").className="ov on";
 }
 
-/* ---- 設定 ---- */
 function showSet(){
-  var box=el("bx");
-  box.innerHTML="";
-  box.appendChild(mk("div",{class:"bh"},"設定"));
-
+  var box=el("bx"); box.innerHTML="";
+  box.appendChild(mk("div",{class:"bh"},"è¨­å®"));
   var tabs=mk("div",{class:"tabs"});
   ["staff","menu","time"].forEach(function(t){
-    var tab=mk("div",{class:"tab"+(stab===t?" on":"")},{staff:"スタッフ",menu:"メニュー",time:"時間"}[t]);
-    tab.textContent={staff:"スタッフ",menu:"メニュー",time:"時間"}[t];
-    tab.addEventListener("click",function(){ stab=t; showSet(); });
-    tabs.appendChild(tab);
-  });
-  box.appendChild(tabs);
+    var lab={staff:"ã¹ã¿ãã",menu:"ã¡ãã¥ã¼",time:"jf¦ZLõmÑtì(ÙÈÑõµ¬ ¥Ø±í±ÍÌèÑ¬¡ÍÑôôõÐü½¸è¥ô±±¤ì(Ñ¹Ù¹Ñ1¥ÍÑ¹È ±¥¬±Õ¹Ñ¥½¸ ¥ìÍÑõÐìÍ¡½ÝMÐ ¤ìô¤ì(ÑÌ¹ÁÁ¹
+¡¥±¡Ñ¤ì(ô¤ì(½à¹ÁÁ¹
+¡¥±¡ÑÌ¤ì(ÙÈ½¹Ðõµ¬ ¥Ø±íô¤ì(¥¡ÍÑôôôÍÑ¥ì(¹ÍÑ¹½É ¡Õ¹Ñ¥½¸¡Ì±¤¥ì(ÙÈÉ½Üõµ¬ ¥Ø±í±ÍÌèÉ½Üô¤ì(ÙÈ½Ðõµ¬ ¥Ø±í±ÍÌè½Ðô¤ì½Ð¹ÍÑå±¹­É½Õ¹õ
+=1Mm¤
+=1L¹±¹Ñ¡tìÉ½Ü¹ÁÁ¹
+¡¥±¡½Ð¤ì(ÙÈ¥8õµ¬ ¥¹ÁÕÐ±íÙ±ÕéÌ¹¹ô¤ì¥8¹ÍÑå±¹ÍÍQáÐô±àèÄí½ÉÈèÅÁàÍ½±¥í½ÉÈµÉ¥ÕÌèÑÁàíÁ¥¹èÌÙÁàí½¹ÐµÍ¥éèÄÉÁàì¥8¹Ù¹Ñ1¥ÍÑ¹È ¡¹±Õ¹Ñ¥½¸ ¥ì¹ÍÑm¥t¹¸õÑ¡¥Ì¹Ù±Õìô¤ìÉ½Ü¹ÁÁ¹
+¡¥±¡¥8¤ì(ÙÈ¥Hõµ¬ ¥¹ÁÕÐ±íÙ±ÕéÌ¹Éô¤ì¥H¹ÍÑå±¹ÍÍQáÐô±àèÄí½ÉÈèÅÁàÍ½±¥í½ÉÈµÉ¥ÕÌèÑÁàíÁ¥¹èÌÙÁàí½¹ÐµÍ¥éèÄÉÁàì¥H¹Ù¹Ñ1¥ÍÑ¹È ¡¹±Õ¹Ñ¥½¸ ¥ì¹ÍÑm¥t¹ÈõÑ¡¥Ì¹Ù±Õìô¤ìÉ½Ü¹ÁÁ¹
+¡¥±¡¥H¤ì(ÙÈõµ¬ ¥¹ÁÕÐ±íÑåÁè¡­½à±Ñ¥Ñ±èòG^ô¤ì¹¡­õÌ¹¼ì¹Ù¹Ñ1¥ÍÑ¹È ¡¹±Õ¹Ñ¥½¸ ¥ì¹ÍÑm¥t¹¼õÑ¡¥Ì¹¡­ìô¤ìÉ½Ü¹ÁÁ¹
+¡¥±¡¤ì(ÙÈ°õµ¬ ÕÑÑ½¸±í±ÍÌèÑ¸Éô°rT¤ì°¹Ù¹Ñ1¥ÍÑ¹È ±¥¬±Õ¹Ñ¥½¸ ¥ì¹ÍÑ¹ÍÁ±¥¡¤°Ä¤ìÍ¡½ÝMÐ ¤ìô¤ìÉ½Ü¹ÁÁ¹
+¡¥±¡°¤ì(½¹Ð¹ÁÁ¹
+¡¥±¡É½Ü¤ì(ô¤ì(ÙÈõµ¬ ÕÑÑ½¸±í±ÍÌèÑ¸ô°¾ò/¢þ÷*¤ì¹ÍÑå±¹µÉ¥¹Q½ÀôáÁàì(¹Ù¹Ñ1¥ÍÑ¹È ±¥¬±Õ¹Ñ¥½¸ ¥ì¹ÍÑ¹ÁÕÍ ¡í¥èÌ­Ñ¹¹½Ü ¤±¸èZÃ
+ç
+ÿT±Èè±¼é±Íô¤ìÍ¡½ÝMÐ ¤ìô¤ì(½¹Ð¹ÁÁ¹
+¡¥±¡¤ì(ô±Í¥¡ÍÑôôôµ¹Ô¥ì(¹µ¹ÕÌ¹½É ¡Õ¹Ñ¥½¸¡´±¤¥ì(ÙÈÉ½Üõµ¬ ¥Ø±í±ÍÌèÉ½Üô¤ì(ÙÈ¥8õµ¬ ¥¹ÁÕÐ±íÙ±Õé´¹¹ô¤ì¥8¹ÍÑå±¹ÍÍQáÐô±àèÈíÜ\\ÛÛYØØØÎØÜ\\Y]\ÎÜY[ÎÈ
+ÙÛ\Ú^NLÈSY][\Ý[\Ú[ÙH[Ý[Û
+^ÈY[\ÖÚWK]\Ë[YNÈJNÈÝË\[Ú[
+SNÂ\Ù[[ZÊÙ[XÝßJNÈÙ[Ý[KÜÜÕ^HÚYÌØÜ\\ÛÛYØØØÎØÜ\\Y]\ÎÜY[ÎÈ
+ÙÛ\Ú^NL\ÂÌMKÌ
 
-  var cont=mk("div",{id:"stcont"});
+K
+LLKÜXXÚ
+[Ý[ÛZ[^È\Ï[ZÊÜ[ÛÝ[YNÝ[ÊZ[_KZ[È¹b!NÈY
+KÌ
+OOO[Z[HËÙ[XÝY]YNÈÙ[\[Ú[
+ÊNÈJNÂÙ[Y][\Ý[\Ú[ÙH[Ý[Û
+^ÈY[\ÖÚWK\\ÙR[
+\Ë[YJNÈJNÈÝË\[Ú[
+Ù[
+NÂ\ÛÜÏ[ZÊ]ØÛ\ÜÎÛÜÈJNÂÓÓËÜXXÚ
+[Ý[ÛËÚJ^È\Ü[ZÊ]ØÛ\ÜÎÛÜÊKÏOOXÚOÈÙ[_JNÈÜÝ[KXÚÙÜÝ[XÎÈÜY][\Ý[\ÛXÚÈ[Ý[Û
+^ÈY[\ÖÚWKÏXÚNÈÚÝÔÙ]
 
-  if(stab==="staff"){
-    D.staff.forEach(function(s,i){
-      var row=mk("div",{class:"row"});
-      var dot=mk("div",{class:"cdot"});
-      dot.style.background=COLS[i%COLS.length];
-      row.appendChild(dot);
-      var inN=mk("input",{value:s.n});
-      inN.style.cssText="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px";
-      inN.addEventListener("change",function(){ D.staff[i].n=this.value; });
-      row.appendChild(inN);
-      var inR=mk("input",{value:s.r});
-      inR.style.cssText="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px";
-      inR.addEventListener("change",function(){ D.staff[i].r=this.value; });
-      row.appendChild(inR);
-      var cb=mk("input",{type:"checkbox",title:"休日"});
-      cb.checked=s.o;
-      cb.addEventListener("change",function(){ D.staff[i].o=this.checked; });
-      row.appendChild(cb);
-      var del=mk("button",{class:"btn red"},"✕");
-      del.addEventListener("click",function(){ D.staff.splice(i,1); showSet(); });
-      row.appendChild(del);
-      cont.appendChild(row);
-    });
-    var addBtn=mk("button",{class:"btn"},"＋追加");
-    addBtn.style.marginTop="8px";
-    addBtn.addEventListener("click",function(){ D.staff.push({id:"s"+Date.now(),n:"新スタッフ",r:"",o:false}); showSet(); });
-    cont.appendChild(addBtn);
+NÈJNÈÛÜË\[Ú[
+Ü
+NÈJNÂÝË\[Ú[
+ÛÜÊNÂ\[[ZÊ]ÛØÛ\ÜÎYK¸§%HNÈ[Y][\Ý[\ÛXÚÈ[Ý[Û
+^ÈY[\ËÜXÙJKJNÈÚÝÔÙ]
 
-  } else if(stab==="menu"){
-    D.menus.forEach(function(m,i){
-      var row=mk("div",{class:"row"});
-      var inN=mk("input",{value:m.n});
-      inN.style.cssText="flex:1;border:1px solid #ccc;border-radius:4px;padding:3px 6px;font-size:12px";
-      inN.addEventListener("change",function(){ D.menus[i].n=this.value; });
-      row.appendChild(inN);
-      var copts=mk("div",{class:"copts"});
-      COLS.forEach(function(c,ci){
-        var opt=mk("div",{class:"copt"+(m.c===ci?" sel":"")});
-        opt.style.background=c;
-        opt.addEventListener("click",function(){ D.menus[i].c=ci; showSet(); });
-        copts.appendChild(opt);
-      });
-      row.appendChild(copts);
-      var del=mk("button",{class:"btn red"},"✕");
-      del.addEventListener("click",function(){ D.menus.splice(i,1); showSet(); });
-      row.appendChild(del);
-      cont.appendChild(row);
-    });
-    var addBtn2=mk("button",{class:"btn"},"＋追加");
-    addBtn2.style.marginTop="8px";
-    addBtn2.addEventListener("click",function(){ D.menus.push({n:"新メニュー",c:0}); showSet(); });
-    cont.appendChild(addBtn2);
+NÈJNÈÝË\[Ú[
+[
+NÂÛÛ\[Ú[
+ÝÊNÂJNÂ\Y[ZÊ]ÛØÛ\ÜÎK»ï"ú/ïyb¨NÈYÝ[KX\Ú[ÜHÂYY][\Ý[\ÛXÚÈ[Ý[Û
+^ÈY[\Ë\Ú
+Û¹¥¬8àèxàâøàéxàïÎÌJNÈÚÝÔÙ]
 
-  } else {
-    var fts=mk("div",{class:"f"});
-    fts.appendChild(mk("label",{},"開始時間"));
-    var sts=mk("select",{id:"sts"});
-    for(var i=6;i<=12;i++){
-      var o=mk("option",{value:String(i)},i+"時");
-      if(D.ts===i) o.selected=true;
-      sts.appendChild(o);
-    }
-    fts.appendChild(sts);
-    cont.appendChild(fts);
+NÈJNÂÛÛ\[Ú[
+YNÂH[ÙHÂ\O[ZÊ]ØÛ\ÜÎJNÈK\[Ú[
+ZÊX[ßKºe¢ùhjy¦`ºe¤ÈJNÂ\ÝÏ[ZÊÙ[XÝÚYÝÈJNÂÜ\OMÚOLLÚJÊÊ^È\Ï[ZÊÜ[ÛÝ[YNÝ[ÊJ_KJÈ¹¦`NÈYÏOOZJHËÙ[XÝY]YNÈÝË\[Ú[
+ÊNÈBK\[Ú[
+ÝÊNÈÛÛ\[Ú[
+JNÂ\[ZÊ]ØÛ\ÜÎJNÈ\[Ú[
+ZÊX[ßK¹í`¹.¡¦`ºe¤ÈJNÂ\ÝO[ZÊÙ[XÝÚYÝHJNÂÜ\LMÎÚLÎÚÊÊ^È\Ì[ZÊÜ[ÛÝ[YNÝ[Ê_KÈ¹¦`NÈYOOOZHÌÙ[XÝY]YNÈÝK\[Ú[
+ÌNÈB\[Ú[
+ÝJNÈÛÛ\[Ú[
+NÂ\\[ZÊ]ÛØÛ\ÜÎXÈKº`jyå*NÈ\Ý[KX\Ú[ÜHÂ\Y][\Ý[\ÛXÚÈ[Ý[Û
+^ÈÏ\\ÙR[
+[
+ÝÈK[YJNÈO\\ÙR[
+[
+ÝHK[YJNÈ[\
+NÈJNÂÛÛ\[Ú[
+\NÂB\Ý[ZÊ]ØÛ\ÜÎJNÂ\Ý[ZÊ]ÛØÛ\ÜÎXÈK¹/çykf8àeøàiºe¢xàf8à¢Â
+NÂÝY][\Ý[\ÛXÚÈ[Ý[Û
+^È
 
-    var fte=mk("div",{class:"f"});
-    fte.appendChild(mk("label",{},"終了時間"));
-    var ste=mk("select",{id:"ste"});
-    for(var j=17;j<=23;j++){
-      var o2=mk("option",{value:String(j)},j+"時");
-      if(D.te===j) o2.selected=true;
-      ste.appendChild(o2);
-    }
-    fte.appendChild(ste);
-    cont.appendChild(fte);
+NÈ[\
+NÈØ]J
+NÈJNÂÝ\[Ú[
+ÝNÈÛÛ\[Ú[
+ÝNÂÞ\[Ú[
+ÛÛ
+NÂ[
+ÝKÛ\ÜÓ[YOHÝÛÂBØY
 
-    var apBtn=mk("button",{class:"btn ac"},"適用");
-    apBtn.style.marginTop="8px";
-    apBtn.addEventListener("click",function(){
-      D.ts=parseInt(el("sts").value);
-      D.te=parseInt(el("ste").value);
-      render();
-    });
-    cont.appendChild(apBtn);
-  }
-
-  /* 保存ボタン */
-  var svBr=mk("div",{class:"br"});
-  var svBtn=mk("button",{class:"btn ac"},"保存して閉じる");
-  svBtn.addEventListener("click",function(){ hd(); render(); save(); });
-  svBr.appendChild(svBtn);
-  cont.appendChild(svBr);
-
-  box.appendChild(cont);
-  el("ov").className="ov on";
-}
-
-load();
-</script>
-</body>
-</html>
+NÂÜØÜ\ØÙOÚ[
