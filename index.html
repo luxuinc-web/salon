@@ -78,6 +78,8 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f5f7fa;padding:8px}
 .menu-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
 .menu-name{font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .menu-time{font-size:10px;color:#888}
+.qpop{position:fixed;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.2);padding:8px;display:flex;gap:6px;z-index:200;animation:fadeIn .1s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -225,7 +227,7 @@ function render(){
         slDiv.style.background="#e8edf2";
       } else {
         (function(sid2,v2){
-          slDiv.addEventListener("click", function(){ showAdd(sid2,v2); });
+          slDiv.addEventListener("click", function(e){ showQuick(sid2,v2,e); });
         })(s.id,v);
       }
       sa.appendChild(slDiv);
@@ -360,6 +362,93 @@ function showDet(dk,k){
 }
 
 /* ---- モーダル：追加 ---- */
+function showQuick(sid,v,e){
+  // 既存ポップアップを閉じる
+  var old=document.getElementById("qpop"); if(old) old.remove();
+
+  var pop=document.createElement("div");
+  pop.id="qpop"; pop.className="qpop";
+
+  var btnY=document.createElement("button");
+  btnY.className="btn ac";
+  btnY.style.cssText="padding:8px 16px;font-size:13px;border-radius:8px";
+  btnY.textContent="📅 予約";
+  btnY.addEventListener("click",function(){pop.remove();showAdd(sid,v);});
+
+  var btnK=document.createElement("button");
+  btnK.className="btn";
+  btnK.style.cssText="padding:8px 16px;font-size:13px;border-radius:8px;color:#555";
+  btnK.textContent="☕ 休憩";
+  btnK.addEventListener("click",function(){pop.remove();showRestAdd(sid,v);});
+
+  pop.appendChild(btnY); pop.appendChild(btnK);
+  document.body.appendChild(pop);
+
+  var pw=pop.offsetWidth||180;
+  var lx=Math.min(e.clientX, window.innerWidth-pw-8);
+  var ly=e.clientY-50; if(ly<8) ly=e.clientY+8;
+  pop.style.left=lx+"px"; pop.style.top=ly+"px";
+
+  setTimeout(function(){
+    document.addEventListener("click",function close(ev){
+      if(!pop.contains(ev.target)){pop.remove();document.removeEventListener("click",close);}
+    });
+  },10);
+}
+
+/* ---- 休憩追加モーダル ---- */
+function showRestAdd(sid,v){
+  var sl=SL();
+  var box=el("bx");
+  box.innerHTML="";
+  box.appendChild(mk("div",{class:"bh"},"休憩を追加"));
+
+  // スタッフ
+  var f1=mk("div",{class:"f"}); f1.appendChild(mk("label",{},"スタッフ"));
+  var fs=mk("select",{id:"rfs"});
+  D.staff.filter(function(s){return !s.o;}).forEach(function(s){
+    var o=mk("option",{value:s.id},s.n); if(s.id===sid) o.selected=true; fs.appendChild(o);
+  });
+  f1.appendChild(fs); box.appendChild(f1);
+
+  // 開始時間
+  var f2=mk("div",{class:"f"}); f2.appendChild(mk("label",{},"開始"));
+  var fv=mk("select",{id:"rfv"});
+  sl.forEach(function(t){ var o=mk("option",{value:String(t)},HL(t)); if(t===v) o.selected=true; fv.appendChild(o); });
+  f2.appendChild(fv); box.appendChild(f2);
+
+  // 時間数
+  var f3=mk("div",{class:"f"}); f3.appendChild(mk("label",{},"時間"));
+  var fd=mk("select",{id:"rfd"});
+  [30,60,90,120].forEach(function(m){ fd.appendChild(mk("option",{value:String(m)},m+"分")); });
+  f3.appendChild(fd); box.appendChild(f3);
+
+  // 日付
+  var f4=mk("div",{class:"f"}); f4.appendChild(mk("label",{},"日付"));
+  var fdate=mk("input",{id:"rfdate",type:"date",value:DK(cur)});
+  f4.appendChild(fdate); box.appendChild(f4);
+
+  var br=mk("div",{class:"br"});
+  var cb=mk("button",{class:"btn"},"キャンセル"); cb.addEventListener("click",hd); br.appendChild(cb);
+  var ab=mk("button",{class:"btn ac"},"休憩追加");
+  ab.addEventListener("click",function(){
+    var sid2=el("rfs").value;
+    var v2=parseFloat(el("rfv").value);
+    var dur=parseInt(el("rfd").value);
+    var dk=el("rfdate").value;
+    if(!D.bks[dk]) D.bks[dk]={};
+    // 開始時間からdur分のスロットを全部埋める
+    var steps=dur/30;
+    for(var i=0;i<steps;i++){
+      var kk=sid2+"_"+(v2+i*0.5);
+      D.bks[dk][kk]={n:"休憩",m:"__rest__",memo:""};
+    }
+    hd(); render(); save();
+  });
+  br.appendChild(ab); box.appendChild(br);
+  el("ov").className="ov on";
+}
+
 function showAdd(sid,v){
   var sl=SL();
   var box=el("bx");
