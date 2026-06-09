@@ -423,11 +423,6 @@ function showRestAdd(sid,v){
   [30,60,90,120].forEach(function(m){ fd.appendChild(mk("option",{value:String(m)},m+"分")); });
   f3.appendChild(fd); box.appendChild(f3);
 
-  // 日付
-  var f4=mk("div",{class:"f"}); f4.appendChild(mk("label",{},"日付"));
-  var fdate=mk("input",{id:"rfdate",type:"date",value:DK(cur)});
-  f4.appendChild(fdate); box.appendChild(f4);
-
   var br=mk("div",{class:"br"});
   var cb=mk("button",{class:"btn"},"キャンセル"); cb.addEventListener("click",hd); br.appendChild(cb);
   var ab=mk("button",{class:"btn ac"},"休憩追加");
@@ -435,7 +430,7 @@ function showRestAdd(sid,v){
     var sid2=el("rfs").value;
     var v2=parseFloat(el("rfv").value);
     var dur=parseInt(el("rfd").value);
-    var dk=el("rfdate").value;
+    var dk=DK(cur);
     if(!D.bks[dk]) D.bks[dk]={};
     // 開始時間からdur分のスロットを全部埋める
     var steps=dur/30;
